@@ -13,5 +13,7 @@ class DevelopmentConfig(object):
     MONGODB_USERNAME = ''
     MONGODB_PASSWORD = ''
 
+    BUNDLE_ERRORS = True  # 捆绑API中所有参数的错误
+
 
 development_config = DevelopmentConfig()
