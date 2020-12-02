@@ -3,3 +3,15 @@
 # @Author : 司云中
 # @File : production.py
 # @Software: Pycharm
+
+
+class DevelopmentConfig(object):
+    """the config of production env"""
+    MONGODB_DB = ''
+    MONGODB_HOST = ''
+    MONGODB_PORT = ''
+    MONGODB_USERNAME = ''
+    MONGODB_PASSWORD = ''
+
+
+development_config = DevelopmentConfig()

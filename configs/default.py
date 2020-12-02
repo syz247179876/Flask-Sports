@@ -5,11 +5,13 @@
 # @Software: Pycharm
 
 
-class MongoConfig(object):
+class DefaultConfig(object):
+    """the default config"""
     MONGODB_DB = ''
     MONGODB_HOST = ''
     MONGODB_PORT = ''
     MONGODB_USERNAME = ''
     MONGODB_PASSWORD = ''
 
-mongodb = MongoConfig()
+
+default_config = DefaultConfig()

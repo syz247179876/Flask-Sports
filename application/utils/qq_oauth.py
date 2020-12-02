@@ -8,7 +8,7 @@ from urllib.parse import urlencode, parse_qs
 from urllib.request import urlopen
 import json
 from manage import app
-from user.utils.api_exceptions import QQServiceUnavailable
+from application.utils.exception import QQServiceUnavailable
 
 
 class OAuthQQ(object):
