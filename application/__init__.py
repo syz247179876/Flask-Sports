@@ -4,6 +4,9 @@
 # @File : __init__.py.py
 # @Software: Pycharm
 from flask import Flask
+
+
+from application.urls.test_urls import test
 from configs import load_config
 
 CONFIGS = {
@@ -21,13 +24,15 @@ def create_app():
     app.secret_key = '4A8BF09E6732FDC682988A8SYZ666AB7CF53176D08631E'
 
     # load config
-    config = load_config(CONFIGS['2'])
-    app.config.from_object(config)
+    # config = load_config(CONFIGS['2'])
+    # app.config.from_object(config)
 
     # register blueprint
-    app.register_blueprint(auth)
-    app.register_blueprint(sport)
-    app.register_blueprint(commodity)
-    app.register_blueprint(error)
+    app.register_blueprint(test)
+    # app.register_blueprint(bp)  # 导入认证蓝图
+    # app.register_blueprint(auth)
+    # app.register_blueprint(sport)
+    # app.register_blueprint(commodity)
+    # app.register_blueprint(error)
 
     return app

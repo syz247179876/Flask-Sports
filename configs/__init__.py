@@ -13,16 +13,16 @@ def load_config(mode=os.environ.get('MODE')):
     """
     try:
         if mode == 'TESTING':
-            from .testing import TestingConfig
-            return TestingConfig
+            from .testing import testing_config
+            return testing_config
         elif mode == 'PRODUCTION':
-            from .production import ProductionConfig
-            return ProductionConfig
+            from .production import production_config
+            return production_config
         elif mode == 'DEVELOPMENT':
-            from .development import DevelopmentConfig
-            return DevelopmentConfig
+            from .development import development_config
+            return development_config
     except ImportError:
-        from .default import Default
-        return Default
+        from .default import default
+        return default
 
 __all__ = ['load_config']
