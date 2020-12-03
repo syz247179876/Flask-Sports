@@ -7,7 +7,9 @@ from flask import Flask
 
 from application.urls.auth_urls import auth_
 from application.urls.test_urls import test
-from application.utils.extentions import celery_app, redis_app
+from application.utils.extensions import celery_app, redis_app
+
+from application.utils.extensions import sms
 from configs import load_config
 
 CONFIGS = {
@@ -25,16 +27,17 @@ def create_app():
     app.secret_key = '4A8BF09E6732FDC682988A8SYZ666AB7CF53176D08631E'
 
     # load config
-    # config = load_config(CONFIGS['2'])
-    # app.config.from_object(config)
+    config = load_config(CONFIGS['2'])
+    app.config.from_object(config)
 
 
     # register blueprint
-    app.register_blueprint(test)
+    # app.register_blueprint(test)
     app.register_blueprint(auth_)
 
     celery_app.init_app(app)  # 注册celery应用
     redis_app.init_app(app)   # 注册redis应用
+    sms.init_app(app)         # 注册阿里云短信服务
 
     # app.register_blueprint(bp)  # 导入认证蓝图
     # app.register_blueprint(auth)

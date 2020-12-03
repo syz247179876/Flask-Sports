@@ -22,6 +22,7 @@ class RegisterApi(Resource):
         """验证校验码"""
         with manager_redis() as redis:
             redis_code = redis.get(phone)
+            print(redis_code)
             if redis_code != code:
                 return False
             return True
@@ -34,8 +35,10 @@ class RegisterApi(Resource):
         args = parser.parse_args() # 获取参数
 
         check_code = self.validate_code(args.get('phone'), args.pop('code'))
-        if check_code:
+        if not check_code:
+            # 验证码不正确
             raise VerificationCodeException()
+        # 创建用户
         self.create_user(**args)
         return args
 

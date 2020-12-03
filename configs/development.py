@@ -20,10 +20,17 @@ class DevelopmentConfig(object):
 
     # redis集群
     STARTUP_NODES = [
-        dict(host='0.0.0.0', port=6379, password='', db=10),
-        dict(host='0.0.0.0', port=6380, password='', db=10),
         dict(host='0.0.0.0', port=6381, password='', db=10),
+        dict(host='0.0.0.0', port=6380, password='', db=10),
+        dict(host='0.0.0.0', port=6379, password='', db=10),
     ]
+
+    REDIS_DB_URL = {
+        'host': '0.0.0.0',
+        'port': 6381,
+        'password': '',
+        'db': 10
+    }
 
     # 唯一表示redis实例的title
     REDIS_TITLE = 'sports'
@@ -40,6 +47,18 @@ class DevelopmentConfig(object):
 
     CELERY_TASK_NAME = 'sport-tasks'
 
+    # 阿里云短信参数
+    ACCESS_KEY_ID = 'LTAI4GL2hJHQWu5YRUoVhSw8'
+    ACCESS_KEY_SECRET = 'OCy6Lxu5QFrCrWDQvOr3TIZPV6AsqA'
+    REGION = 'cn-hangzhou'
+    SIGN_NAME = 'ACC商城'  # 短信签名
+
+    # 不同的短信模板
+    TEMPLATES_CODE_LOGIN = 'SMS_199795817'
+    TEMPLATES_CODE_REGISTER = 'SMS_199795814'
+    TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
+    TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
+    TEMPLATES_CODE_RETRIEVE_PASSWORD = ''
 
 
 development_config = DevelopmentConfig()

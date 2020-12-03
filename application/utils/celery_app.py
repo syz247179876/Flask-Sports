@@ -20,7 +20,7 @@ class PyCelery(object):
         Initialize this :class:`PyCelery` for use.
         """
         if name is None:
-            name = app.config.get('CELERY_TASK_NAME', 'tasks')
+            name = app.config.get('CELERY_TASK_NAME', app.name)
         if config is None:
             config = app.config
 
@@ -33,6 +33,10 @@ class PyCelery(object):
     def celery(self):
         """retrieve celery instance"""
         return getattr(self, '_celery')
+
+
+apps = Celery('task', broker='redis://:syzxss247179876@127.0.0.1:6381/0') # celery application
+
 
 
 

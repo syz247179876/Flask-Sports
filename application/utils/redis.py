@@ -5,6 +5,7 @@
 # @Software: Pycharm
 import contextlib
 from rediscluster import RedisCluster
+from redis import Redis
 
 
 class BaseRedis:
@@ -28,8 +29,9 @@ class BaseRedis:
 
         if not cls._instance.setdefault(cls.__name__, None):
             db = app.config.get('CACHE_NAME')
-            cls._redis_instances[db] = RedisCluster(startup_nodes=app.config.get('STARTUP_NODES'),
-                                                    decode_responses=True)  # redis集群(一主三从)
+            # cls._redis_instances[db] = RedisCluster(startup_nodes=app.config.get('STARTUP_NODES'),
+            #                                         decode_responses=True)  # redis集群(一主三从)
+            cls._redis_instances[db] = Redis(**app.config.get('REDIS_DB_URL'), decode_responses=True)
             cls._instance[cls.__name__] = cls(db, cls._redis_instances[db])  # 自定义操作类实例
         return cls._instance[cls.__name__]
 
@@ -43,7 +45,8 @@ class BaseRedis:
 
     @classmethod
     def redis_instance(cls):
-        return cls.redis
+        """获取存放单例字典中的实例的redis属性"""
+        return cls._instance[cls.__name__].redis
 
     @staticmethod
     def key(*args):
