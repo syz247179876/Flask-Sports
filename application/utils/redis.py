@@ -48,6 +48,12 @@ class BaseRedis:
         """获取存放单例字典中的实例的redis属性"""
         return cls._instance[cls.__name__].redis
 
+    @classmethod
+    def redis_operation_instance(cls):
+        """获取当前操作类(BaseRedis)的实例"""
+        return cls._instance[cls.__name__]
+
+
     @staticmethod
     def key(*args):
         """
@@ -122,3 +128,11 @@ def manager_redis(redis_class=BaseRedis, redis=None):
         print(e)
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
+
+@contextlib.contextmanager
+def manager_redis_operation(redis_class=BaseRedis):
+    try:
+        instance = redis_class.redis_operation_instance()
+        yield instance
+    except Exception as e:
+        print(e)
