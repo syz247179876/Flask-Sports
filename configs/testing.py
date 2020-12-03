@@ -3,9 +3,13 @@
 # @Author : 司云中
 # @File : testing.py
 # @Software: Pycharm
+from configs.default import DefaultConfig
 
-class DevelopmentConfig(object):
+
+class TestingConfig(DefaultConfig):
     """the config of testing env"""
+    DEBUG = True
+    TESTING = True
     MONGODB_DB = ''
     MONGODB_HOST = ''
     MONGODB_PORT = ''
@@ -13,4 +17,4 @@ class DevelopmentConfig(object):
     MONGODB_PASSWORD = ''
 
 
-development_config = DevelopmentConfig()
+testing_config = TestingConfig()

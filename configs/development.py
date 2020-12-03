@@ -3,10 +3,14 @@
 # @Author : 司云中
 # @File : development.py
 # @Software: Pycharm
+from configs.default import DefaultConfig
 
 
-class DevelopmentConfig(object):
+class DevelopmentConfig(DefaultConfig):
     """the config of development env"""
+    DEBUG = True
+    TESTING = False
+
     MONGODB_DB = ''
     MONGODB_HOST = ''
     MONGODB_PORT = ''
@@ -36,10 +40,10 @@ class DevelopmentConfig(object):
     REDIS_TITLE = 'sports'
 
     # celery broker
-    CELERY_BROKER_URL = 'redis://@127.0.0.1:6382/0'
+    CELERY_BROKER_URL = 'redis://@127.0.0.1:6381/0'
 
     # celery backend
-    CELERY_RESULT_BACKEND = 'redis://@127.0.0.1:6382/1'
+    CELERY_RESULT_BACKEND = 'redis://@127.0.0.1:6381/1'
 
     CELERY_TASK_SERIALIZER = 'json'
 

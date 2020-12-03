@@ -3,10 +3,13 @@
 # @Author : 司云中
 # @File : production.py
 # @Software: Pycharm
+from configs.default import DefaultConfig
 
 
-class DevelopmentConfig(object):
+class ProductionConfig(DefaultConfig):
     """the config of production env"""
+    DEBUG = False
+    TESTING = False
     MONGODB_DB = ''
     MONGODB_HOST = ''
     MONGODB_PORT = ''
@@ -14,4 +17,4 @@ class DevelopmentConfig(object):
     MONGODB_PASSWORD = ''
 
 
-development_config = DevelopmentConfig()
+production_config = ProductionConfig()

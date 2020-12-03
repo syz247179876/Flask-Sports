@@ -80,3 +80,5 @@ class SMS(object):
         # 业务处理
 
         return queryResponse
+
+sms = SMS()

@@ -14,6 +14,7 @@ class PyCelery(object):
     def __init__(self, app=None, name=None, config=None, *args, **kwargs):
         if app is not None:
             self.init_app(app, name, config, *args, **kwargs)
+            self.app = app
 
     def init_app(self, app, name=None, config=None, *args, **kwargs):
         """
@@ -24,19 +25,9 @@ class PyCelery(object):
         if config is None:
             config = app.config
 
-        celery = Celery(name)
+        celery = Celery(name, broker=app.config['CELERY_BROKER_URL'])
         celery.config_from_object(config)
         # celery.autodiscover_tasks()
-        setattr(self, '_celery', celery)
-
-    @property
-    def celery(self):
-        """retrieve celery instance"""
-        return getattr(self, '_celery')
-
-
-apps = Celery('task', broker='redis://:syzxss247179876@127.0.0.1:6381/0') # celery application
-
-
-
+        app.config.update({'CELERY_INSTANCE':celery})
+        setattr(self, 'app', app)
 

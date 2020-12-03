@@ -4,7 +4,6 @@
 # @File : redis.py
 # @Software: Pycharm
 import contextlib
-from rediscluster import RedisCluster
 from redis import Redis
 
 

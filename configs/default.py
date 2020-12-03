@@ -7,11 +7,8 @@
 
 class DefaultConfig(object):
     """the default config"""
-    MONGODB_DB = ''
-    MONGODB_HOST = ''
-    MONGODB_PORT = ''
-    MONGODB_USERNAME = ''
-    MONGODB_PASSWORD = ''
+    DEBUG = False
+    TESTING = False
 
 
 default_config = DefaultConfig()

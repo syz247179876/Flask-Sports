@@ -10,14 +10,14 @@ from flask_restful import Resource, reqparse
 
 from application.utils.fields import phone_string
 from application.utils.redis import manager_redis_operation
-from application.tasks import send_phone
+from application.signals.signal import send_code_signal
 
 SMS_FORMAT_TEXT = \
     {
         '1':
             {
             'title': '【More healthy】App登录',
-            'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
+            'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！',
             },
         '2': {
             'title': '【More healthy】App注册',
@@ -32,7 +32,6 @@ SMS_FORMAT_TEXT = \
             'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
         }
     }
-
 
 
 def get_verification_code():
@@ -70,5 +69,5 @@ class SendCodeApi(Resource):
 
         text = SMS_FORMAT_TEXT.get('2')
         text.update({'content':text.get('content') % {'code':code}})
-        send_phone.delay(phone, )
+        send_code_signal.send(self, phone=phone, text=text)
         # TODO 完成异步发送验证码
