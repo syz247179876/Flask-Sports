@@ -5,8 +5,9 @@
 # @Software: Pycharm
 from flask import Flask
 
-
+from application.urls.auth_urls import auth_
 from application.urls.test_urls import test
+from application.utils.extentions import celery_app, redis_app
 from configs import load_config
 
 CONFIGS = {
@@ -27,8 +28,14 @@ def create_app():
     # config = load_config(CONFIGS['2'])
     # app.config.from_object(config)
 
+
     # register blueprint
     app.register_blueprint(test)
+    app.register_blueprint(auth_)
+
+    celery_app.init_app(app)  # 注册celery应用
+    redis_app.init_app(app)   # 注册redis应用
+
     # app.register_blueprint(bp)  # 导入认证蓝图
     # app.register_blueprint(auth)
     # app.register_blueprint(sport)

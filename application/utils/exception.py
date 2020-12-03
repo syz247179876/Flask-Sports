@@ -80,6 +80,8 @@ PHONE_REGISTER_ERROR = 1003
 PHONE_NOT_EXIST = 1004
 # 手机号存在
 PHONE_HAS_EXISTED = 1005
+# 验证码错误
+CODE_VALIDATE_FAIL = 1006
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -160,6 +162,17 @@ class LoginNotExistException(ApiException):
     code = HTTP_400_BAD_REQUEST
     error_code = PHONE_NOT_EXIST
     description = 'Mobile phone number does not exist'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+
+class VerificationCodeException(ApiException):
+    """验证码错误"""
+
+    code = HTTP_400_BAD_REQUEST
+    error_code = CODE_VALIDATE_FAIL
+    description = 'Verification code is validated error'
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
