@@ -52,17 +52,10 @@ class DevelopmentConfig(DefaultConfig):
     CELERY_TASK_NAME = 'sport-tasks'
 
     # 阿里云短信参数
-    ACCESS_KEY_ID = 'LTAI4GL2hJHQWu5YRUoVhSw8'
-    ACCESS_KEY_SECRET = 'OCy6Lxu5QFrCrWDQvOr3TIZPV6AsqA'
+    ACCESS_KEY_ID = ''
+    ACCESS_KEY_SECRET = ''
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
-
-    # 不同的短信模板
-    TEMPLATES_CODE_LOGIN = 'SMS_199795817'
-    TEMPLATES_CODE_REGISTER = 'SMS_199795814'
-    TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
-    TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
-    TEMPLATES_CODE_RETRIEVE_PASSWORD = ''
 
 
 development_config = DevelopmentConfig()

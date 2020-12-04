@@ -3,21 +3,23 @@
 # @Author : 司云中
 # @File : send_code_api.py
 # @Software: Pycharm
+import random
 import string
-from random import random
 
 from flask_restful import Resource, reqparse
 
 from application.utils.fields import phone_string
 from application.utils.redis import manager_redis_operation
 from application.signals.signal import send_code_signal
+from application.utils.success_code import response_code
+from configs.settings import TEMPLATES_CODE_REGISTER
 
 SMS_FORMAT_TEXT = \
     {
         '1':
             {
-            'title': '【More healthy】App登录',
-            'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！',
+                'title': '【More healthy】App登录',
+                'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！',
             },
         '2': {
             'title': '【More healthy】App注册',
@@ -67,7 +69,6 @@ class SendCodeApi(Resource):
 
         code = self.create_save_code(phone)
 
-        text = SMS_FORMAT_TEXT.get('2')
-        text.update({'content':text.get('content') % {'code':code}})
-        send_code_signal.send(self, phone=phone, text=text)
-        # TODO 完成异步发送验证码
+        send_code_signal.send(self, phone_numbers=phone, template_code=TEMPLATES_CODE_REGISTER,
+                                  template_param={'code': code})
+        return response_code.register_success
