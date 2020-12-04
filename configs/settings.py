@@ -7,3 +7,7 @@ TEMPLATES_CODE_RETRIEVE_PASSWORD = ''
 
 SIGN_NAME = 'ACC商城'  # 短信签名
 
+# 加密算法
+PASSWORD_HASHERS = [
+    'application.utils.crypto.pbkdf2_crypto'
+]

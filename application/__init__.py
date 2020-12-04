@@ -5,9 +5,10 @@
 # @Software: Pycharm
 from flask import Flask
 
+
 from application.urls.auth_urls import auth_
 from application.urls.test_urls import test
-from application.utils.extensions import celery_app, redis_app, code_signal, sms
+from application.utils.extensions import celery_app, redis_app, code_signal, sms, db, encryption
 from configs import load_config
 
 CONFIGS = {
@@ -33,10 +34,11 @@ def create_app():
     # app.register_blueprint(test)
     app.register_blueprint(auth_)
 
-    celery_app.init_app(app)  # 注册celery应用
-    redis_app.init_app(app)  # 注册redis应用
-    sms.init_app(app)  # 注册阿里云短信服务
+    celery_app.init_app(app)   # 注册celery应用
+    redis_app.init_app(app)    # 注册redis应用
+    sms.init_app(app)          # 注册阿里云短信服务
     code_signal.init_app(app)  # 注册发送验证码信号
+    db.init_app(app)           # 注册mongodb实例
 
     # app.register_blueprint(bp)  # 导入认证蓝图
     # app.register_blueprint(auth)
