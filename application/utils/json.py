@@ -21,8 +21,9 @@ def output_json(data, code, headers=None):
     # If we're in debug mode, and the indent is not set, we set it to a
     # reasonable value here.  Note that this won't override any existing value
     # that was set.  We also set the "sort_keys" value.
-    if 'msg' not in data:
-        data.update({'msg':'OK'})
+
+    if 'message' not in data:
+        data.update({'message':'good'})
     if current_app.debug:
         settings.setdefault('indent', 4)
         settings.setdefault('sort_keys', not PY3)

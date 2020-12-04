@@ -8,7 +8,9 @@ from flask_restful import Resource, fields, reqparse
 from application.utils.exception import VerificationCodeException
 from application.utils.fields import IdentifyingCodeString, PasswordString, PhoneString, phone_string, password_string, \
     identify_code_string
-from application.utils.redis import manager_redis
+from application.utils.redis import manager_redis, manager_redis_operation
+from application.utils.success_code import response_code
+
 
 class RegisterApi(Resource):
     """注册Api"""
@@ -46,6 +48,48 @@ class RegisterApi(Resource):
 class LoginApi(Resource):
     """登录Api"""
 
+    def validate_code(self, phone, code):
+        """验证验证码"""
+
+        with manager_redis_operation() as manager:
+            is_checked = manager.check_code(phone, code)
+
+            if not is_checked:  # error
+                return False, response_code.verification_code_error
+            else:               # success
+                return True, None
+
+
+    def validate_password(self, phone, password):
+        """验证密码"""
+
+        # TODO: 查询mongodb,校验用户
+
+        # if not is_correct:   # error
+        #     return False, response_code.password_error
+        # else:
+        #     return True, None
+
     def post(self):
-        pass
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('phone', type=phone_string, required=True, help='手机号格式不正确')
+        parser.add_argument('password', type=password_string, required=False, help='密码格式不规范')
+        parser.add_argument('code', type=identify_code_string, required=False, help='验证码格式不正确')
+        parser.add_argument('way', choices=('code', 'password'), required=True, help='必须选择登录方式')
+
+        args = parser.parse_args()
+
+        way = args.get('way')
+        func_str = f"validate_{way}"
+        func = getattr(self, func_str)
+        is_validated, error = func(args.get('phone'),args.get(way))
+
+        if is_validated: # 认证通过
+            return response_code.login_success
+        else:
+            return error
+
+
+
+
 

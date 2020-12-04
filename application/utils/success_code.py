@@ -216,8 +216,8 @@ USERNAME_FORMATION = 996
 # 用户无权限
 USER_FORBIDDEN = 403
 
-# 用户密码格式不正确
-PASSWORD_FORMATION_ERROR = 965
+# 用户密码不正确
+PASSWORD_ERROR = 965
 
 # 校验出错
 VALIDATION_ERROR = 400
@@ -262,9 +262,9 @@ class ResponseCode:
         return self.result
 
     @property
-    def password_formation_error(self):
+    def password_error(self):
         """用户密码格式不正确"""
-        self.result.update(dict(code=PASSWORD_FORMATION_ERROR, msg='密码格式不正确', status='error'))
+        self.result.update(dict(code=PASSWORD_ERROR, msg='密码不正确', status='error'))
         return self.result
 
     @property

@@ -14,27 +14,6 @@ from application.signals.signal import send_code_signal
 from application.utils.success_code import response_code
 from configs.settings import TEMPLATES_CODE_REGISTER
 
-SMS_FORMAT_TEXT = \
-    {
-        '1':
-            {
-                'title': '【More healthy】App登录',
-                'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！',
-            },
-        '2': {
-            'title': '【More healthy】App注册',
-            'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
-        },
-        '3': {
-            'title': '【More healthy】App修改密码',
-            'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
-        },
-        '4': {
-            'title': '【More healthy】App找回密码',
-            'content': '尊敬的【More healthy】用户,您的验证码为%(code)s,有效期10分钟，如非本人操作，请勿理睬！'
-        }
-    }
-
 
 def get_verification_code():
     """Custom verification code"""

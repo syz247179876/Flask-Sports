@@ -6,8 +6,8 @@
 
 from blinker import Namespace
 
-user_signals = Namespace()
+user_signals = Namespace()  # 声明信号映射
 
-send_code_signal = user_signals.signal('send-code')
+send_code_signal = user_signals.signal('send-code') # 创建信号对象
 
 
