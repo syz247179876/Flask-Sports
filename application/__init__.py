@@ -43,7 +43,7 @@ def create_app():
     redis_app.init_app(app)    # 注册redis应用
     sms.init_app(app)          # 注册阿里云短信服务
     code_signal.init_app(app)  # 注册发送验证码信号
-    # db.init_app(app)           # 注册mongodb实例
+    db.init_app(app)           # 注册mongodb实例
 
     got_request_exception.connect(log_exception, app) # 记录请求的异常
 

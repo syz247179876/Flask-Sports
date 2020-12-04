@@ -11,11 +11,10 @@ class DevelopmentConfig(DefaultConfig):
     DEBUG = True
     TESTING = False
 
-    MONGODB_DB = ''
-    MONGODB_HOST = ''
-    MONGODB_PORT = ''
-    MONGODB_USERNAME = ''
-    MONGODB_PASSWORD = ''
+    MONGO_SETTINGS = {
+        'db':'hellofriends',
+        'host':'mongodb+srv://syz:syzxss247179876@cluster0.3zfbq.gcp.mongodb.net/hellofriends?retryWrites=true&w=majority'
+    }
 
     # 捆绑API中所有参数的错误
     BUNDLE_ERRORS = True
