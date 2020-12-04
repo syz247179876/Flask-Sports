@@ -6,6 +6,8 @@
 
 from flask_mongoengine.wtf import model_form
 
+from application.utils.extensions import db
+
 
 class User(db.Document):
     """用户模型"""
@@ -13,4 +15,3 @@ class User(db.Document):
     username = db.StringField(required=True)
     phone = db.StringField(required=True)
     password = db.StringField(required=True)
-    is_active

@@ -7,9 +7,9 @@ from flask import Flask
 
 
 from application.urls.auth_urls import auth_
-from application.urls.test_urls import test
 from application.utils.extensions import celery_app, redis_app, code_signal, sms, db, encryption
 from configs import load_config
+from flask import got_request_exception
 
 CONFIGS = {
     "1": "TESTING",
@@ -17,7 +17,12 @@ CONFIGS = {
     "3": "PRODUCTION"
 }
 
-config = load_config(CONFIGS['2'])
+config = load_config(CONFIGS['2'])  # 选择环境
+
+def log_exception(sender, exception, **extra):
+    """ 记录请求的异常"""
+    sender.logger.debug('Got exception during processing: %s', exception)
+
 
 
 def create_app():
@@ -38,7 +43,9 @@ def create_app():
     redis_app.init_app(app)    # 注册redis应用
     sms.init_app(app)          # 注册阿里云短信服务
     code_signal.init_app(app)  # 注册发送验证码信号
-    db.init_app(app)           # 注册mongodb实例
+    # db.init_app(app)           # 注册mongodb实例
+
+    got_request_exception.connect(log_exception, app) # 记录请求的异常
 
     # app.register_blueprint(bp)  # 导入认证蓝图
     # app.register_blueprint(auth)
