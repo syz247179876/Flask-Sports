@@ -8,6 +8,10 @@ from mongoengine import *
 
 class Commodity(Document):
 
+    meta = {
+        'collection': 'commodity'
+    }
+
     # 商品名
     name = StringField(required=True, max_length=50)
 

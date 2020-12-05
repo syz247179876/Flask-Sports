@@ -73,14 +73,19 @@ USER_INFOR_CHANGE_ERROR = 2019
 
 USER_ORIGINAL_PASSWORD_ERROR = 2020
 
-
 # 绑定手机成功
 
 BIND_SUCCESS = 2021
 
 # 绑定手机失败
 
-BIND_ERROR = -13
+BIND_ERROR = 2022
+
+# 验证码发送成功
+SEND_VERIFICATION_CODE_SUCCESS = 2023
+
+# 修改信息成功
+MODIFY_INFORMATION_SUCCESS = 2024
 
 # 认证真实用户成功
 VERIFY_ID_CARD_SUCCESS = 15
@@ -653,19 +658,13 @@ class ResponseCode:
         return self.result
 
     @property
-    def add_action_remark_success(self, data):
-        """点赞/差评成功"""
-        self.result.update(dict(code=ADD_ACTION_REMARK_SUCCESS, msg='modify_success', status='success', data=data))
+    def send_code_success(self):
+        self.result.update(dict(code=SEND_VERIFICATION_CODE_SUCCESS, msg='发送验证码', status='success'))
         return self.result
 
     @property
-    def acquire_coupon_success(self):
-        """获取优惠卷"""
-        self.result.update(dict(code=ACQUIRE_COUPON_SUCCESS, msg='acquire_success', status='success'))
-
-    @property
-    def acquire_coupon_error(self):
-        """获取优惠卷"""
-        self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire_error', status='error'))
+    def modify_information_success(self):
+        self.result.update(dict(code=MODIFY_INFORMATION_SUCCESS, msg='修改信息成功', status='success'))
+        return self.result
 
 response_code = ResponseCode()

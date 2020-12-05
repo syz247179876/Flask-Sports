@@ -11,9 +11,9 @@ class DevelopmentConfig(DefaultConfig):
     DEBUG = True
     TESTING = False
 
-    MONGO_SETTINGS = {
+    MONGODB_SETTINGS = { # 注意url的优先级大于db
         'db':'flask_sports',
-        'host':'mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb'
+        'host':'mongodb://127.0.0.1:27017/flask_sports'
     }
 
     # 捆绑API中所有参数的错误
@@ -55,6 +55,18 @@ class DevelopmentConfig(DefaultConfig):
     ACCESS_KEY_SECRET = ''
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
+
+    # 不同的短信模板
+    TEMPLATES_CODE_LOGIN = 'SMS_199795817'
+    TEMPLATES_CODE_REGISTER = 'SMS_199795814'
+    TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
+    TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
+    TEMPLATES_CODE_RETRIEVE_PASSWORD = ''
+
+    # 加密算法
+    PASSWORD_HASHERS = [
+        'application.utils.crypto.pbkdf2_crypto'
+    ]
 
 
 development_config = DevelopmentConfig()

@@ -8,7 +8,7 @@ import functools
 from werkzeug.utils import import_string
 from application.utils.extensions import encryption
 from application.utils.exception import ImproperlyConfigured
-from configs import settings
+from flask import current_app
 
 def get_salt(salt):
     return salt or 'https://syzzjw.cn/'
@@ -48,7 +48,7 @@ def get_hashers():
     """
     hashers = []
     # 导入报名
-    for hasher_path in settings.PASSWORD_HASHERS:
+    for hasher_path in current_app.config.get('PASSWORD_HASHERS'):
         hasher_cls = import_string(hasher_path)
         hasher = hasher_cls()
         hashers.append(hashers)

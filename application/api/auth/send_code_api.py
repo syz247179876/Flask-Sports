@@ -13,7 +13,7 @@ from application.utils.fields import phone_string
 from application.utils.redis import manager_redis_operation
 from application.signals.signal import send_code_signal
 from application.utils.success_code import response_code
-from configs.settings import TEMPLATES_CODE_REGISTER
+from flask import current_app
 
 
 def get_verification_code():
@@ -60,6 +60,6 @@ class SendCodeApi(Resource):
 
         code = self.create_save_code(phone)
 
-        send_code_signal.send(self, phone_numbers=phone, template_code=TEMPLATES_CODE_REGISTER,
+        send_code_signal.send(self, phone_numbers=phone, template_code=current_app.config.get('TEMPLATES_CODE_REGISTER'),
                                   template_param={'code': code})
-        return response_code.register_success
+        return response_code.send_code_success

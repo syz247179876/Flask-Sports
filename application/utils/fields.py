@@ -21,8 +21,14 @@ def password_string(value):
 
 def identify_code_string(value):
     """验证码输入类型"""
-    if re.match(r'^[0-9A-Za-z]{6}', value) is None:
+    if re.match(r'^[0-9A-Za-z]{5}', value) is None:
         raise ValueError('验证码格式不正确')
+    return value
+
+def username_string(value):
+    """用户名输入类型"""
+    if len(value) > 20 or len(value) < 1:
+        raise ValueError('用户名格式不正确')
     return value
 
 class PhoneString(fields.Raw):
