@@ -21,10 +21,10 @@ LOGIN_VERIFICATION_SUCCESS = 2002
 LOGIN_VERIFICATION_ERROR = 2003
 
 # 注册验证成功
-REGISTER_VERIFICATION_SUCCESS = 2004
+REGISTER_SUCCESS = 2004
 
 # 注册验证失败
-REGISTER_VERIFICATION_ERROR = 2005
+REGISTER_ERROR = 2005
 
 # 邮件验证成功
 EMAIL_VERIFICATION_SUCCESS = 2006
@@ -299,14 +299,14 @@ class ResponseCode:
 
     @property
     def register_success(self):
-        """注册验证成功"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_SUCCESS, msg='注册验证成功', status='success'))
+        """注册成功"""
+        self.result.update(dict(code=REGISTER_SUCCESS, msg='注册用户成功', status='success'))
         return self.result
 
     @property
     def register_error(self):
-        """注册验证失败"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_ERROR, msg='注册验证失败', status='error'))
+        """注册失败"""
+        self.result.update(dict(code=REGISTER_ERROR, msg='用户已存在', status='error'))
         return self.result
 
     @property

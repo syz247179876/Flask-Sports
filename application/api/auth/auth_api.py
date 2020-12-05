@@ -4,6 +4,9 @@
 # @File : auth-api.py
 # @Software: Pycharm
 from flask_restful import Resource, fields, reqparse
+from pymongo.errors import DuplicateKeyError
+
+from application.models.user_model import User
 
 from application.utils.exception import VerificationCodeException
 from application.utils.fields import IdentifyingCodeString, PasswordString, PhoneString, phone_string, password_string, \
@@ -17,7 +20,13 @@ class RegisterApi(Resource):
 
     def create_user(self, **kwargs):
         """创建用户"""
-        pass
+        try:
+            user = User(**kwargs)
+            user.set_username(f"用户:{kwargs.get('phone')}")
+            user.save()
+            return user
+        except DuplicateKeyError:
+            return None
 
 
     def validate_code(self, phone, code):
@@ -41,8 +50,9 @@ class RegisterApi(Resource):
             # 验证码不正确
             raise VerificationCodeException()
         # 创建用户
-        self.create_user(**args)
-        return args
+        user = self.create_user(**args)
+        return response_code.register_success if user else response_code.user_existed
+
 
 
 class LoginApi(Resource):

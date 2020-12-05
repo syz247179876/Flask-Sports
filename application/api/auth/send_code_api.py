@@ -8,6 +8,7 @@ import string
 
 from flask_restful import Resource, reqparse
 
+from application.models.user_model import User
 from application.utils.fields import phone_string
 from application.utils.redis import manager_redis_operation
 from application.signals.signal import send_code_signal
@@ -32,6 +33,11 @@ def get_verification_code():
 class SendCodeApi(Resource):
     """发送验证码API"""
 
+    def exist_phone(self, phone):
+        if User.objects(phone=phone).count() > 0:
+            return True
+        return False
+
     def create_save_code(self, phone):
         """创建存储验证码"""
 
@@ -45,6 +51,12 @@ class SendCodeApi(Resource):
         parser.add_argument('phone', type=phone_string, required=True, help='手机号格式不正确')
         args = parser.parse_args()
         phone = args.get('phone')
+
+        # 校验数据库是否存在该用户的phone
+
+        is_exist = self.exist_phone(phone)
+        if is_exist:
+            return response_code.user_existed
 
         code = self.create_save_code(phone)
 

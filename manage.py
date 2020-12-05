@@ -7,14 +7,16 @@
 from application import create_app
 from flask_script import Manager, Server
 
+from application.models.user_model import User
+
 app = create_app()
 manager = Manager(app)
 # 使用python manage.py runserver启动服务器
 manager.add_command('runserver', Server)
 
-# @manager.shell
-# def make_shell_context():
-#     return dict(app=app, db=db, User=User)
+@manager.shell
+def make_shell_context():
+    return dict(app=app, User=User)
 
 if __name__ == '__main__':
     # 启动flask服务

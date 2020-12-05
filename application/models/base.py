@@ -7,18 +7,25 @@
 
 from flask_mongoengine.wtf import model_form
 
-from application import db
+from mongoengine import *
 from application.utils.hasher import make_password, check_password
+import datetime
 
-
-class BaseModel(db.Document):
+class BaseModel(Document):
     """基类模型"""
+
+    meta = {'allow_inheritance': True}
+
 
     USERNAME_FIELD = 'username'
 
-    is_active = True
+    is_active = BooleanField(default=True)
 
-    last_login = db.DateTimeField()
+    is_admin = BooleanField(default=False)
+
+    last_login = DateTimeField(required=True, default=datetime.datetime.now())
+
+    register_time = DateTimeField(default=datetime.datetime.now())
 
     def __str__(self):
         return self.get_username()

@@ -12,8 +12,8 @@ class DevelopmentConfig(DefaultConfig):
     TESTING = False
 
     MONGO_SETTINGS = {
-        'db':'hellofriends',
-        'host':'mongodb+srv://syz:syzxss247179876@cluster0.3zfbq.gcp.mongodb.net/hellofriends?retryWrites=true&w=majority'
+        'db':'flask_sports',
+        'host':'mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb'
     }
 
     # 捆绑API中所有参数的错误
