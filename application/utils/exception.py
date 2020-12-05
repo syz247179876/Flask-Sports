@@ -93,6 +93,12 @@ CODE_MISSING_ERROR = 1009
 MODIFY_INFORMATION_ERROR = 1010
 # 用户信息存在异常
 SESSION_INFORMATION_ERROR = 1011
+# 服务器开小车去了
+SERVER_ERROR = 1013
+# 密码不正确
+PASSWORD_ERROR = 1014
+# 验证码错误
+CODE_ERROR = 1015
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -230,6 +236,33 @@ class SessionUserInformationException(ApiException):
     error_code = SESSION_INFORMATION_ERROR
     description = 'User information seem to exist exception'
 
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+
+class ServerErrors(ApiException):
+    code = HTTP_500_INTERNAL_SERVER_ERROR
+    error_code = SERVER_ERROR
+    description = 'Server may be leave a little time'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class PasswordError(ApiException):
+    code = HTTP_400_BAD_REQUEST
+    error = PASSWORD_ERROR
+    description = 'password error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class CodeError(ApiException):
+    code = HTTP_400_BAD_REQUEST
+    error = CODE_ERROR
+    description = 'code error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
 
 class ImproperlyConfigured(Exception):
     """Flask is somehow improperly configured"""
