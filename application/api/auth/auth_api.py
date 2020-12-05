@@ -9,17 +9,18 @@ from mongoengine import NotUniqueError
 from pymongo.errors import DuplicateKeyError
 
 from application.models.user_model import User
+from application.signals.signal import generate_token_signal
 from application.utils.exception import VerificationCodeException, CodeMissingError, \
-    PasswordMissingError
+    PasswordMissingError, ServerErrors, PasswordError, CodeError
 from application.utils.fields import phone_string, password_string, \
     identify_code_string
 from application.utils.hasher import make_password
 from application.utils.redis import manager_redis, manager_redis_operation
 from application.utils.success_code import response_code
 
-
 class RegisterApi(Resource):
     """注册Api"""
+
 
     @staticmethod
     def create_user(**kwargs):
@@ -65,8 +66,7 @@ class RegisterApi(Resource):
 class LoginApi(Resource):
     """登录Api"""
 
-    @staticmethod
-    def validate_code(phone, code):
+    def validate_code(self, phone, code):
         """验证验证码"""
         if not code:  # 丢失验证码
             raise CodeMissingError()
@@ -74,13 +74,26 @@ class LoginApi(Resource):
         with manager_redis_operation() as manager:
             is_checked = manager.check_code(phone, code)
 
-            if not is_checked:  # error
-                return False, response_code.verification_code_error
-            else:  # success
-                return True, None
+            if not is_checked:  # code error
+                raise CodeError()
 
-    @staticmethod
-    def validate_password(phone, raw_password):
+            # 校验用户
+            try:
+                user = User.objects(phone=phone).first()  # json格式数据
+                if user:
+                    # 发送信号,获取token
+                    token = generate_token_signal.send(self, id=user.id, phone=phone)[0][1]
+                    return token  # 取结果
+                else:
+                    # 密码不正确
+                    raise PasswordError()
+            except Exception:
+                # 服务器开小车去了
+                raise ServerErrors()
+
+
+
+    def validate_password(self, phone, raw_password):
         """验证密码"""
         if not raw_password:  # 丢失密码
             raise PasswordMissingError()
@@ -88,14 +101,14 @@ class LoginApi(Resource):
         try:
             user = User.objects(phone=phone, password=password).first() # json格式数据
             if user:
-                session['user'] = user
-                return True, None
+                # 发送信号,获取token, 返回[(func, result)]
+                token = generate_token_signal.send(self, id=user.id, phone=phone)[0][1]
+                return token # 取结果
             else:
-                return False, response_code.password_error
+                raise PasswordError()
         except Exception as e:
-            print(e)
+            raise ServerErrors()
 
-            return False, response_code.password_error
 
     def post(self):
         parser = reqparse.RequestParser(bundle_errors=True)
@@ -103,16 +116,12 @@ class LoginApi(Resource):
         parser.add_argument('password', type=password_string, required=False, help='密码格式不规范')
         parser.add_argument('code', type=identify_code_string, required=False, help='验证码格式不正确')
         parser.add_argument('way', choices=('code', 'password'), required=True, help='必须选择正确的登录方式')
-
         args = parser.parse_args()
+
 
         way = args.get('way')
         func_str = f"validate_{way}"
         func = getattr(self, func_str)
-
-        is_validated, error = func(args.get('phone'), args.get(way))
-
-        if is_validated:  # 认证通过
-            return response_code.login_success
-        else:
-            return error
+        token = func(args.get('phone'), args.get(way)) # 获取token
+        response_code.login_success.update({'token':token}) # 添加token
+        return response_code.login_success

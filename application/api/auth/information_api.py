@@ -9,7 +9,7 @@
 修改个人信息API
 """
 
-from flask import session
+from flask import session, current_app
 from flask_restful import Resource, fields, marshal_with, reqparse
 
 from application.api.auth import authenticate
@@ -67,3 +67,4 @@ class InformationApi(Resource):
         """修改头像"""
         parser = reqparse.RequestParser(bundle_errors=True)
         parser.add_argument('head_image', type)
+        # TODO: 对接oss实现头像上传

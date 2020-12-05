@@ -3,15 +3,37 @@
 # @Author : 司云中
 # @File : development.py
 # @Software: Pycharm
+import os
+
+from flask import current_app
+
 from configs.default import DefaultConfig
 
 
 class DevelopmentConfig(DefaultConfig):
     """the config of development env"""
+
+    # 项目路径
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # 密钥!
+    SECRET = 'uMfBdlYid2CYfkYkpeB2PCB-NlwFhM-ppd5FC4ToGMQgRE4c_xEFAlFthHjI3N1qU1sUdcBCplaPydp1Zo_xxw'
+
+    # 发行人
+    ISSUER = 'syz:247179876'
+
+    # 私钥文件路径
+    PRIVATE_PATH = os.path.join(BASE_DIR,'keys/private_key.pem')
+
+    # 公钥文件文件路径
+
+    PUBLIC_PATH = os.path.join(BASE_DIR, 'keys/public_key.pem')
+
     DEBUG = True
     TESTING = False
 
-    MONGODB_SETTINGS = { # 注意url的优先级大于db
+    # 注意url的优先级大于db
+    MONGODB_SETTINGS = {
         'db':'flask_sports',
         'host':'mongodb://127.0.0.1:27017/flask_sports'
     }
