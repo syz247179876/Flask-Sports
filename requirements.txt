@@ -32,6 +32,8 @@ Flask-RESTful==0.3.8
 Flask-Script==2.0.6
 Flask-SQLAlchemy==2.4.4
 Flask-WTF==0.14.3
+# Editable install with no version control (flaskr==1.0.0)
+-e /home/syz/FlaskLearning/lib/python3.6/site-packages/flaskr-1.0.0-py3.6.egg
 gunicorn==20.0.4
 idna==2.10
 importlib-metadata==1.7.0
@@ -68,6 +70,7 @@ ptyprocess==0.6.0
 pycparser==2.20
 pycrypto==2.6.1
 Pygments==2.7.2
+PyJWT==1.7.1
 pymongo==3.11.0
 PyMySQL==0.10.1
 pyparsing==2.4.7
