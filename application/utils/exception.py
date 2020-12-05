@@ -83,6 +83,16 @@ PHONE_NOT_EXIST = 1004
 PHONE_HAS_EXISTED = 1005
 # 验证码错误
 CODE_VALIDATE_FAIL = 1006
+# 未认证
+AUTHENTICATION_ERROR = 1007
+# 丢失密码
+PASSWORD_MISSING_ERROR = 1008
+# 丢失验证码
+CODE_MISSING_ERROR = 1009
+# 修改个人信息失败
+MODIFY_INFORMATION_ERROR = 1010
+# 用户信息存在异常
+SESSION_INFORMATION_ERROR = 1011
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -178,7 +188,49 @@ class VerificationCodeException(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
+class AuthenticationError(ApiException):
+    code = HTTP_401_UNAUTHORIZED
+    error_code = AUTHENTICATION_ERROR
+    description = 'User Authentication error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+
+class PasswordMissingError(ApiException):
+    code = HTTP_400_BAD_REQUEST
+    error_code = PASSWORD_MISSING_ERROR
+    description = 'Password must be required'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+
+class CodeMissingError(ApiException):
+    code = HTTP_400_BAD_REQUEST
+    error_code = CODE_MISSING_ERROR
+    description = 'Code must be required'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+
+class ModifyInformationError(ApiException):
+    code = HTTP_500_INTERNAL_SERVER_ERROR
+    error_code = MODIFY_INFORMATION_ERROR
+    description = 'modify information error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+
+class SessionUserInformationException(ApiException):
+    code = HTTP_500_INTERNAL_SERVER_ERROR
+    error_code = SESSION_INFORMATION_ERROR
+    description = 'User information seem to exist exception'
+
+
 class ImproperlyConfigured(Exception):
     """Flask is somehow improperly configured"""
     pass
-

@@ -8,6 +8,9 @@ from blinker import Namespace
 
 user_signals = Namespace()  # 声明信号映射
 
-send_code_signal = user_signals.signal('send-code') # 创建信号对象
+# 创建信号对象
+send_code_signal = user_signals.signal('send-code') # 发送验证码
+
+update_session_user_signal = user_signals.signal('update-information')  # 更新session中的数据
 
 

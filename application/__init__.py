@@ -7,7 +7,7 @@ from flask import Flask
 
 
 from application.urls.auth_urls import auth_
-from application.utils.extensions import celery_app, redis_app, code_signal, sms, db, encryption
+from application.utils.extensions import celery_app, redis_app, sms, db, encryption, signal
 from configs import load_config
 from flask import got_request_exception
 
@@ -42,8 +42,8 @@ def create_app():
     celery_app.init_app(app)   # 注册celery应用
     redis_app.init_app(app)    # 注册redis应用
     sms.init_app(app)          # 注册阿里云短信服务
-    code_signal.init_app(app)  # 注册发送验证码信号
-    # db.init_app(app)           # 注册mongodb实例
+    signal.init_app(app)  # 注册发送验证码信号
+    db.init_app(app)           # 注册mongodb实例
 
     got_request_exception.connect(log_exception, app) # 记录请求的异常
 

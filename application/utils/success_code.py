@@ -21,10 +21,10 @@ LOGIN_VERIFICATION_SUCCESS = 2002
 LOGIN_VERIFICATION_ERROR = 2003
 
 # 注册验证成功
-REGISTER_VERIFICATION_SUCCESS = 2004
+REGISTER_SUCCESS = 2004
 
 # 注册验证失败
-REGISTER_VERIFICATION_ERROR = 2005
+REGISTER_ERROR = 2005
 
 # 邮件验证成功
 EMAIL_VERIFICATION_SUCCESS = 2006
@@ -73,14 +73,19 @@ USER_INFOR_CHANGE_ERROR = 2019
 
 USER_ORIGINAL_PASSWORD_ERROR = 2020
 
-
 # 绑定手机成功
 
 BIND_SUCCESS = 2021
 
 # 绑定手机失败
 
-BIND_ERROR = -13
+BIND_ERROR = 2022
+
+# 验证码发送成功
+SEND_VERIFICATION_CODE_SUCCESS = 2023
+
+# 修改信息成功
+MODIFY_INFORMATION_SUCCESS = 2024
 
 # 认证真实用户成功
 VERIFY_ID_CARD_SUCCESS = 15
@@ -299,14 +304,14 @@ class ResponseCode:
 
     @property
     def register_success(self):
-        """注册验证成功"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_SUCCESS, msg='注册验证成功', status='success'))
+        """注册成功"""
+        self.result.update(dict(code=REGISTER_SUCCESS, msg='注册用户成功', status='success'))
         return self.result
 
     @property
     def register_error(self):
-        """注册验证失败"""
-        self.result.update(dict(code=REGISTER_VERIFICATION_ERROR, msg='注册验证失败', status='error'))
+        """注册失败"""
+        self.result.update(dict(code=REGISTER_ERROR, msg='用户已存在', status='error'))
         return self.result
 
     @property
@@ -653,19 +658,13 @@ class ResponseCode:
         return self.result
 
     @property
-    def add_action_remark_success(self, data):
-        """点赞/差评成功"""
-        self.result.update(dict(code=ADD_ACTION_REMARK_SUCCESS, msg='modify_success', status='success', data=data))
+    def send_code_success(self):
+        self.result.update(dict(code=SEND_VERIFICATION_CODE_SUCCESS, msg='发送验证码', status='success'))
         return self.result
 
     @property
-    def acquire_coupon_success(self):
-        """获取优惠卷"""
-        self.result.update(dict(code=ACQUIRE_COUPON_SUCCESS, msg='acquire_success', status='success'))
-
-    @property
-    def acquire_coupon_error(self):
-        """获取优惠卷"""
-        self.result.update(dict(code=ACQUIRE_COUPON_ERROR, msg='acquire_error', status='error'))
+    def modify_information_success(self):
+        self.result.update(dict(code=MODIFY_INFORMATION_SUCCESS, msg='修改信息成功', status='success'))
+        return self.result
 
 response_code = ResponseCode()
