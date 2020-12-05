@@ -7,10 +7,10 @@
 
 import datetime
 import time
-
+import json
 import jwt
 from bson import ObjectId
-from flask import session, current_app, request_started
+from flask import session, current_app, request_started, request_finished
 from flask.globals import request
 from jwt.exceptions import ExpiredSignatureError
 
@@ -116,6 +116,26 @@ def parse_jwt(sender, **kwargs):
             token = again_token(payload, id)
             # 添加到headers
             req.headers['Bearer-Token'] = token
+            req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
+
+from flask.wrappers import Response
+def append_jwt(sender, response):
+    """
+    如果request中存在token的话,则将token添加到response
+    1.解码,获取str类型的Response数据
+    2.更新token到Response数据
+    3.编码,写回response.__dict__
+    """
+    req = request
+    if not getattr(req, 'token', None):
+        response_str = response.__dict__.get('response')[0].decode()
+        response_dict = json.loads(response_str)
+        response_dict.update({'token':getattr(req, 'token')})
+        response_str = json.dumps(response_dict)
+        response.__dict__.get('response')[0] = response_str.encode()
+
+
+
 
 
 class Signal(object):
@@ -142,4 +162,5 @@ class Signal(object):
         self.register_signal(update_session_user_signal, update_session_user)  # 注册更新session用户信息信号
         self.register_signal(generate_token_signal, generate_token)  # 生成token
         self.register_signal(request_started, parse_jwt)  # 解析jwt,获取用户对象,立即登入
+        self.register_signal(request_finished, append_jwt)  # 追加jwt
         self.configure_celery(app)
