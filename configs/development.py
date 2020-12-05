@@ -32,6 +32,9 @@ class DevelopmentConfig(DefaultConfig):
     DEBUG = True
     TESTING = False
 
+    JWT_REFRESH_DAY = 7
+    JWT_EXPIRE_DAY = 1
+
     # 注意url的优先级大于db
     MONGODB_SETTINGS = {
         'db':'flask_sports',

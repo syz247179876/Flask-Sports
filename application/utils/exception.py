@@ -99,6 +99,8 @@ SERVER_ERROR = 1013
 PASSWORD_ERROR = 1014
 # 验证码错误
 CODE_ERROR = 1015
+# 服务端Token最终失效
+SERVER_TOKEN_EXPIRE = 1016
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -250,7 +252,7 @@ class ServerErrors(ApiException):
 
 class PasswordError(ApiException):
     code = HTTP_400_BAD_REQUEST
-    error = PASSWORD_ERROR
+    error_code = PASSWORD_ERROR
     description = 'password error'
 
     def __init__(self):
@@ -258,8 +260,20 @@ class PasswordError(ApiException):
 
 class CodeError(ApiException):
     code = HTTP_400_BAD_REQUEST
-    error = CODE_ERROR
+    error_code = CODE_ERROR
     description = 'code error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class ServerTokenExpire(ApiException):
+    """
+    服务端Token过期,
+    意味着用户必须强制重定向到登录页
+    """
+    code = HTTP_401_UNAUTHORIZED
+    error_code = SERVER_TOKEN_EXPIRE
+    description = 'server token is expired up to the uttermost'
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)

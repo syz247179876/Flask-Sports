@@ -5,7 +5,7 @@
 # @Software: Pycharm
 import contextlib
 from redis import Redis
-
+import datetime
 
 class BaseRedis:
     _instance = {}
@@ -52,6 +52,10 @@ class BaseRedis:
         """获取当前操作类(BaseRedis)的实例"""
         return cls._instance[cls.__name__]
 
+    def record_ip(self, ip):
+        """记录IP"""
+        with manager_redis() as redis:
+            redis.hset(name='ip_record', key=ip, value=datetime.datetime.now().strftime('%Y-%m-%d'))
 
     @staticmethod
     def key(*args):
@@ -107,15 +111,21 @@ class BaseRedis:
                 return False
             redis.ttl(key)
 
-    @staticmethod
-    def get_client_ip(request):
+    def get_token_exp(self, id):
+        """获取token最终失效时间"""
+        with manager_redis() as redis:
+            return redis.hget(id, 'refresh_time').decode()
 
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')  # 真实IP
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[-1].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR')  # 代理IP,如果没有代理,也是真实IP
-        return ip
+
+
+    def save_token_kwargs(self, **kwargs):
+        """
+        存id号, token, 生成token起始时间,token最终过期时间
+        每次检测请求token,看是否需要刷新自动获取
+        """
+        copy_ = kwargs.copy()
+        with manager_redis() as redis:
+            redis.hset(copy_.pop('id'),mapping=copy_)
 
 
 @contextlib.contextmanager
@@ -124,7 +134,8 @@ def manager_redis(redis_class=BaseRedis, redis=None):
         redis = redis_class.redis_instance()
         yield redis
     except Exception as e:
-        print(e)
+        # TODO:redis宕机, 发送邮件到我邮箱
+        pass
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
 
@@ -134,4 +145,5 @@ def manager_redis_operation(redis_class=BaseRedis):
         instance = redis_class.redis_operation_instance()
         yield instance
     except Exception as e:
-        print(e)
+        # TODO:redis宕机, 发送邮件到我邮箱
+        pass

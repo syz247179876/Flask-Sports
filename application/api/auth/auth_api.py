@@ -3,7 +3,8 @@
 # @Author : 司云中
 # @File : auth-api.py
 # @Software: Pycharm
-from flask import session
+
+
 from flask_restful import Resource, reqparse
 from mongoengine import NotUniqueError
 from pymongo.errors import DuplicateKeyError
@@ -18,9 +19,9 @@ from application.utils.hasher import make_password
 from application.utils.redis import manager_redis, manager_redis_operation
 from application.utils.success_code import response_code
 
+
 class RegisterApi(Resource):
     """注册Api"""
-
 
     @staticmethod
     def create_user(**kwargs):
@@ -91,24 +92,22 @@ class LoginApi(Resource):
                 # 服务器开小车去了
                 raise ServerErrors()
 
-
-
     def validate_password(self, phone, raw_password):
         """验证密码"""
         if not raw_password:  # 丢失密码
             raise PasswordMissingError()
         password = make_password(raw_password)  # 加密
         try:
-            user = User.objects(phone=phone, password=password).first() # json格式数据
+            user = User.objects(phone=phone, password=password).first()  # json格式数据
             if user:
                 # 发送信号,获取token, 返回[(func, result)]
                 token = generate_token_signal.send(self, id=user.id, phone=phone)[0][1]
-                return token # 取结果
+                return token  # 取结果
             else:
                 raise PasswordError()
         except Exception as e:
+            # TODO: 日志记录
             raise ServerErrors()
-
 
     def post(self):
         parser = reqparse.RequestParser(bundle_errors=True)
@@ -118,10 +117,9 @@ class LoginApi(Resource):
         parser.add_argument('way', choices=('code', 'password'), required=True, help='必须选择正确的登录方式')
         args = parser.parse_args()
 
-
         way = args.get('way')
         func_str = f"validate_{way}"
         func = getattr(self, func_str)
-        token = func(args.get('phone'), args.get(way)) # 获取token
-        response_code.login_success.update({'token':token}) # 添加token
+        token = func(args.get('phone'), args.get(way))  # 获取token
+        response_code.login_success.update({'token': token})  # 添加token
         return response_code.login_success
