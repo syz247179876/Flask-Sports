@@ -4,6 +4,8 @@
 # @File : redis.py
 # @Software: Pycharm
 import contextlib
+
+from bson import ObjectId
 from redis import Redis
 import datetime
 
@@ -129,6 +131,7 @@ class BaseRedis:
 
         数据结构:hash
         """
+
         _copy = kwargs.copy()
         with manager_redis() as redis:
             redis.hset(_copy.pop('id'), mapping=_copy)
@@ -142,10 +145,11 @@ class BaseRedis:
 
         数据结构:hash
         """
+        member = str(member)
         with manager_redis() as redis:
             name = self.key(type, member)
             step_count = redis.hget(name, date)
-            return int(step_count)
+            return step_count
 
     def set_sport_value(self, member, date, value, type):
         """
@@ -157,11 +161,11 @@ class BaseRedis:
 
         数据结构:hash, sorted set
         """
-
+        member = str(member)
         with manager_redis() as redis:
             pipe = redis.pipeline()
             name = self.key(type, member)
-            result = pipe.hset(name, key=date, value=value)
+            pipe.hset(name, key=date, value=value)
             self.update_rank_value(pipe, type, date, member, value)  # 更新全服排名
             result = pipe.execute()
             return result
@@ -173,6 +177,7 @@ class BaseRedis:
 
         数据结构:sorted set
         """
+        member = str(member)
         _name = self.key('rank', type, date)
         pipeline.zadd(_name, {member:value})
 
@@ -184,6 +189,7 @@ class BaseRedis:
 
         数据结构:hash
         """
+        member = str(member)
         day = day or 7
         # 过去时间的元祖,不包含今天
         past = ((datetime.datetime.now() - datetime.timedelta(days=i)).strftime('%Y-%d-%m') for i in range(1, day))
@@ -223,6 +229,8 @@ class BaseRedis:
 
         数据结构:sorted set
         """
+        member = str(member)
+
         with manager_redis() as redis:
             name = self.key('rank', type, today)
             pipe = redis.pipeline()
@@ -237,6 +245,7 @@ class BaseRedis:
 
         数据结构:sorted set
         """
+
         with manager_redis() as redis:
             name = self.key('rank', type, today)
             result = redis.zcard(name)
@@ -253,6 +262,7 @@ def manager_redis(redis_class=BaseRedis, redis=None):
         yield redis
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
+        print(231231232)
         print(e)
         pass
     finally:
@@ -266,5 +276,6 @@ def manager_redis_operation(redis_class=BaseRedis):
         yield instance
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
+        print(231231)
         print(e)
         pass

@@ -6,6 +6,7 @@
 import datetime
 import json
 
+from bson import ObjectId
 from flask import g
 from flask_restful import Resource, fields, marshal_with, reqparse
 from mongoengine import NotUniqueError, ValidationError
@@ -41,9 +42,8 @@ class RankApi(Resource):
         user = getattr(g, 'user')
 
         with manager_redis_operation() as manager:
-            user_rank = manager.retrieve_cur_rank_user(user.id)
-            # manager.retrieve_rank_list(user.id)
-        print()
+            result = manager.retrieve_cur_rank_user(user.id)
+            # TODO: 测试返回数据
 
 
 class CounterApi(Resource):
@@ -61,15 +61,17 @@ class CounterApi(Resource):
         'step': fields.Integer
     }
 
+
     @marshal_with(resource_fields)
     def get(self):
         """显示用户步数"""
         user = getattr(g, 'user')  # 获取用户对象
         with manager_redis_operation() as manager:
-            step = manager.get_step(user.id, datetime.datetime.now().strftime('%Y-%m-%d'))
-        user_dict = json.loads(user.to_json())
-        user_dict.update({'step': step})
-        return user_dict
+            step = manager.get_sport_value(str(user.id), datetime.datetime.now().strftime('%Y-%m-%d'), type='step')
+            step = step if step else 0
+            user_dict = json.loads(user.to_json())
+            user_dict.update({'step': step})
+            return user_dict
 
     def post(self):
         """保存用户步数"""
@@ -80,29 +82,33 @@ class CounterApi(Resource):
         today = datetime.datetime.now().strftime('%Y-%m-%d')
         with manager_redis_operation() as manager:
             # 设置用户步数,并更新全服运动值榜
-            status = manager.set_sport_value(user.id, today, args.get('step'), 'step')
-        return {'step_status': status}, 204
+            result = manager.set_sport_value(user.id, today, args.get('step'), 'step')
+            if all(result):
+                return {'step_status': True}, 204
+            return {'step_status': False}, 204
 
 
 class ListCounterApi(Resource):
     """获取用户前7天的运动步数数据"""
     method_decorators = [authenticate_jwt]
 
-
     sports_fields = {
-        'step': fields.Integer(),
-        'date': fields.String(),
-        'status': fields.Integer(),
-        'goal': fields.Integer()
+        'step': fields.Integer,
+        'date': fields.String,
+        'status': fields.String,
+        'goal': fields.String,
+        'member_rank': fields.String,
+        'is_member': fields.Boolean
     }
 
     resource_fields = {
-        'username': fields.String(),
+        'username': fields.String,
         'head_image': fields.String(default='https://flask-sports.oss-cn-beijing.aliyuncs.com/1579793244834816.jpg'),
         'sport_data': fields.List(fields.Nested(sports_fields))  # 整体块嵌套
     }
 
-    def generate_data(self, sport_instances):
+    @staticmethod
+    def generate_data(sport_instances):
         """
         生成适合的数据
         返回list数据
@@ -139,9 +145,11 @@ class ListCounterApi(Resource):
         for instance in sport_instances:
             data_dict = {
                 'date': instance.date.strftime('%Y-%m-%d'),  # 日期
-                'stop': instance.step,  # 运动状态
-                'status': instance.status,  # 运动状态
-                'goal': instance.goal  # 运动目标
+                'step': instance.step,                       # 运动步数
+                'status': instance.status_display,       # 运动状态
+                'goal': instance.goal_display,           # 运动目标
+                'member_rank': instance.member_display,  # 获取会员等级
+                'is_member': instance.is_member,             # 是否是会员
             }
             data_list.append(data_dict)
             date_list.append(instance.date.strftime('%Y-%m-%d'))
@@ -157,7 +165,7 @@ class ListCounterApi(Resource):
         last_week = datetime.datetime.utcnow().date() - datetime.timedelta(days=6)
         sport_instances = StepSport.objects(user=user.id, date__gte=last_week).limit(7)
         sport_data = self.generate_data(sport_instances)
-        data = {'sport_data':sport_data, 'username':user.username, 'head_image':user.head_image}
+        data = {'sport_data': sport_data, 'username': user.username, 'head_image': user.head_image}
         return data
 
 
@@ -170,14 +178,16 @@ class RecordTodayStepSport(Resource):
 
     method_decorators = [authenticate_jwt]
 
-    def compute_integral(self, step):
+    @staticmethod
+    def compute_integral(step):
         """
         计算积分值
         integral = step / 100
         """
         return step // 100
 
-    def calculation_status(self, step):
+    @staticmethod
+    def calculation_status(step):
         """
         推算出当日运动状态
         :param step:
@@ -195,8 +205,9 @@ class RecordTodayStepSport(Resource):
         user = getattr(g, 'user')
         today = datetime.datetime.now().strftime('%Y-%m-%d')
         with manager_redis_operation() as manager:
-            step = manager.get_sport_value(user.id, today, 'step')
+            step = int(manager.get_sport_value(user.id, today, 'step'))
             print(step)
+            # TODO: 测试返回数据
 
         data_dict.update(
             {
@@ -204,14 +215,20 @@ class RecordTodayStepSport(Resource):
                 'step': step,
                 'status': self.calculation_status(step),
                 'user': user
-            },
+            }
         )
+
+        print(data_dict)
         try:
             step_sport = StepSport(**data_dict).save()
-            return step_sport
+            return {'step_sport':'pk'} , 204
         except DuplicateKeyError:
+            print(1)
             return MongodbValidationError()
-        except NotUniqueError:
+        except NotUniqueError as e:
+            print(2)
+            print(e)
             raise MongodbValidationError()
         except ValidationError:
+            print(3)
             raise MongodbValidationError()

@@ -46,3 +46,32 @@ class StepSport(db.Document):
         (6, 25000)
     )
     goal = db.IntField(choices=GOAL, default=1)
+
+    MEMBER = (
+        (3,'铂金会员'),
+        (2,'高级会员'),
+        (1,'普通用户')
+    )
+
+    # 是否是会员
+    is_member = db.BooleanField(default=False)
+
+    # 会员等级
+    member_rank = db.IntField(default=1, choices=MEMBER)
+
+    @property
+    def member_display(self):
+        """获取会员等级可读数据"""
+        dicts = {i[0]: i[1] for i in self.MEMBER}
+        return dicts.get(self.member_rank)
+
+    @property
+    def goal_display(self):
+        """获取目标可读数据"""
+        dicts = {i[0]: i[1] for i in self.GOAL}
+        return dicts.get(self.goal)
+
+    @property
+    def status_display(self):
+        dicts = {i[0]: i[1] for i in self.STATUS}
+        return dicts.get(self.status)
