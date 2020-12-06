@@ -116,8 +116,6 @@ class BaseRedis:
         with manager_redis() as redis:
             return redis.hget(id, 'refresh_time').decode()
 
-
-
     def save_token_kwargs(self, **kwargs):
         """
         存id号, token, 生成token起始时间,token最终过期时间
@@ -125,15 +123,38 @@ class BaseRedis:
         """
         copy_ = kwargs.copy()
         with manager_redis() as redis:
-            redis.hset(copy_.pop('id'),mapping=copy_)
-
+            redis.hset(copy_.pop('id'), mapping=copy_)
 
     def get_step(self, name, key):
-        """根据name和key获取hash中的用户某一天的步数"""
+        """
+        根据name和key获取hash中的用户某一天的步数
+        """
         with manager_redis() as redis:
-            step_count = redis.hget(name, key).decode()
+            key = self.key('step', name)
+            step_count = redis.hget(key, key).decode()
             return step_count
 
+    def set_step(self, name, key, step_value):
+        """
+        根据name和key以及step_value设置某用户某天的步数
+        """
+        with manager_redis() as redis:
+            name = self.key('step', name)
+            result = redis.hset(name, key=key, value=step_value)
+            return result
+
+    def retrieve_list_step(self, name, day=None):
+        """
+        默认获取过去一周的运动情况
+        """
+        day = day or 7
+        # 过去时间的元祖,不包含今天
+        past = ((datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%d-%m') for i in range(1, day))
+        today = datetime.datetime.now().strftime('%Y-%d-%m')
+        with manager_redis() as redis:
+            name = self.key('step', name)
+            result = redis.hmget(name, today, *past)
+            print(result)
 
 @contextlib.contextmanager
 def manager_redis(redis_class=BaseRedis, redis=None):
@@ -142,9 +163,11 @@ def manager_redis(redis_class=BaseRedis, redis=None):
         yield redis
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
+        print(e)
         pass
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
+
 
 @contextlib.contextmanager
 def manager_redis_operation(redis_class=BaseRedis):
@@ -153,4 +176,5 @@ def manager_redis_operation(redis_class=BaseRedis):
         yield instance
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
+        print(e)
         pass

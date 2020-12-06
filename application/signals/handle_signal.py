@@ -124,8 +124,6 @@ def parse_jwt(sender, **kwargs):
             # 在解析payload过程中突然过期,重新生成
             # token到期异常,判断refresh_jwt是否还在有效期
             token = again_token(payload, id)
-            # 添加到headers
-            req.headers['Bearer-Token'] = token
             req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
         except DecodeError:
             # token错误
@@ -140,10 +138,10 @@ def append_jwt(sender, response):
     3.编码,写回response.__dict__
     """
     req = request
+    print(response.__dict__)
     try:
         # 刷新重新写回token到Response的情况
         if getattr(req, 'token', None):
-            print(response.__dict__)
             response_str = response.__dict__.get('response')[0].decode()
             response_dict = json.loads(response_str)
             response_dict.update({'token': getattr(req, 'token')})

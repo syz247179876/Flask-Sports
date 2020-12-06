@@ -115,15 +115,5 @@ class Address(db.Document):
     user = db.ListField(db.ReferenceField(User, reverse_delete_rule=db.CASCADE))
 
 
-class Sports(db.Document):
-
-    meta = {
-        'collection': 'sports'
-    }
-
-    date = db.DateField()
-
-    user = db.ReferenceField(User, reverse_delete_rule=db.CASCADE)
-
 
 

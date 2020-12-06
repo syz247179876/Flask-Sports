@@ -96,5 +96,12 @@ class DevelopmentConfig(DefaultConfig):
     # 认证模型类
     AUTH_USER_MODEL = 'application.models.user_model.User'
 
+    # 模型模块
+    APPLICATION_MODELS_MODULE = [
+        'application.models.user_model.Address',
+        'application.models.sport_model.StepSport',
+        'application.models.integral_model.Commodity',
+    ]
+
 
 development_config = DevelopmentConfig()

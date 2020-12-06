@@ -5,8 +5,7 @@
 # @Software: Pycharm
 from flask import Flask
 
-from application.api import sport
-from application.models import get_user_model
+from application.models import get_user_model, register_all_model
 from application.urls.sports_url import sport
 from application.urls.user_urls import user
 from application.utils.extensions import celery_app, redis_app, sms, db, encryption, signal
@@ -49,7 +48,8 @@ def create_app():
     db.init_app(app)           # 注册mongodb实例
 
     with app.app_context():
-        app.config.setdefault('user', get_user_model())
+        get_user_model(app) # 注册用户模型表
+        register_all_model(app)   # 注册其余模型表,通过current_app.config.get('models').get(model_name)进行访问
 
     got_request_exception.connect(log_exception, app) # 记录请求的异常
 

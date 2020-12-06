@@ -26,7 +26,8 @@ def authenticate_jwt(func):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if getattr(g, 'user', None):
+        # 用户既存在,且is_authenticated为True
+        if getattr(g, 'user', None) and getattr(g, 'user').is_authenticated:
             return func(*args, **kwargs)
         raise AuthenticationError()
     return wrapper
