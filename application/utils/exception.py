@@ -101,6 +101,8 @@ PASSWORD_ERROR = 1014
 CODE_ERROR = 1015
 # 服务端Token最终失效
 SERVER_TOKEN_EXPIRE = 1016
+# TOKEN校验失败
+TOKEN_DECODE_ERROR = 1017
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -274,6 +276,17 @@ class ServerTokenExpire(ApiException):
     code = HTTP_401_UNAUTHORIZED
     error_code = SERVER_TOKEN_EXPIRE
     description = 'server token is expired up to the uttermost'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class TokenDecodeError(ApiException):
+    """
+    Token校验错误
+    """
+    code = HTTP_403_FORBIDDEN
+    error_code = TOKEN_DECODE_ERROR
+    description = 'The token you supply is error, please check it'
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)

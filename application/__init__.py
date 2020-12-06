@@ -5,8 +5,8 @@
 # @Software: Pycharm
 from flask import Flask
 
-
-from application.urls.auth_urls import auth_
+from application.models import get_user_model
+from application.urls.user_urls import user
 from application.utils.extensions import celery_app, redis_app, sms, db, encryption, signal
 from configs import load_config
 from flask import got_request_exception
@@ -37,13 +37,16 @@ def create_app():
     app.config.from_object(config)
     # register blueprint
     # app.register_blueprint(test)
-    app.register_blueprint(auth_)
+    app.register_blueprint(user)
 
     celery_app.init_app(app)   # 注册celery应用
     redis_app.init_app(app)    # 注册redis应用
     sms.init_app(app)          # 注册阿里云短信服务
     signal.init_app(app)  # 注册发送验证码信号
     db.init_app(app)           # 注册mongodb实例
+
+    with app.app_context():
+        app.config.setdefault('user', get_user_model())
 
     got_request_exception.connect(log_exception, app) # 记录请求的异常
 

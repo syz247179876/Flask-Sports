@@ -93,5 +93,8 @@ class DevelopmentConfig(DefaultConfig):
         'application.utils.crypto.pbkdf2_crypto'
     ]
 
+    # 认证模型类
+    AUTH_USER_MODEL = 'application.models.user_model.User'
+
 
 development_config = DevelopmentConfig()

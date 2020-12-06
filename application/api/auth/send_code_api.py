@@ -8,7 +8,6 @@ import string
 
 from flask_restful import Resource, reqparse
 
-from application.models.user_model import User
 from application.utils.fields import phone_string
 from application.utils.redis import manager_redis_operation
 from application.signals.signal import send_code_signal
@@ -34,6 +33,7 @@ class SendCodeApi(Resource):
     """发送验证码API"""
 
     def exist_phone(self, phone):
+        User = current_app.config.get('user')
         if User.objects(phone=phone).count() > 0:
             return True
         return False

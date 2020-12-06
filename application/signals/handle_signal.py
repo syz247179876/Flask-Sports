@@ -6,18 +6,19 @@
 
 
 import datetime
-import time
 import json
+import time
+
 import jwt
 from bson import ObjectId
-from flask import session, current_app, request_started, request_finished
+from flask import session, current_app, request_started, request_finished, g
 from flask.globals import request
-from jwt.exceptions import ExpiredSignatureError
+from jwt.exceptions import ExpiredSignatureError, DecodeError
 
 from application.signals.signal import send_code_signal
 from application.signals.signal import update_session_user_signal, generate_token_signal
 from application.tasks.user_task import send_phone
-from application.utils.exception import SessionUserInformationException, ServerTokenExpire
+from application.utils.exception import SessionUserInformationException, ServerTokenExpire, TokenDecodeError
 from application.utils.redis import manager_redis_operation
 
 
@@ -95,6 +96,7 @@ def parse_jwt(sender, **kwargs):
     Parse token from client
     then, generate new user instance, which would be assigned to flask.g
     """
+    User = current_app.config.get('user')
     global id, payload
     expire_day = current_app.config.get('JWT_EXPIRE_DAY', 1)
 
@@ -109,7 +111,7 @@ def parse_jwt(sender, **kwargs):
                                  leetway=datetime.timedelta(days=expire_day),
                                  algorithms='HS256')
             id = payload.get('id')  # 拿到用户id
-            g.user = User.objects(id=ObjectId(id))  # 创建用户对象赋值给全局代理对象g.user,以后通过g.user判断当前用户是否认证!
+            g.user = User.objects(id=ObjectId(id)).first()  # 创建用户对象赋值给全局代理对象g.user,以后通过g.user判断当前用户是否认证!
         except ExpiredSignatureError:
             # 在解析payload过程中突然过期,重新生成
             # token到期异常,判断refresh_jwt是否还在有效期
@@ -117,8 +119,11 @@ def parse_jwt(sender, **kwargs):
             # 添加到headers
             req.headers['Bearer-Token'] = token
             req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
+        except DecodeError:
+            # token错误
+            raise TokenDecodeError()
 
-from flask.wrappers import Response
+
 def append_jwt(sender, response):
     """
     如果request中存在token的话,则将token添加到response
@@ -127,15 +132,21 @@ def append_jwt(sender, response):
     3.编码,写回response.__dict__
     """
     req = request
-    if not getattr(req, 'token', None):
-        response_str = response.__dict__.get('response')[0].decode()
-        response_dict = json.loads(response_str)
-        response_dict.update({'token':getattr(req, 'token')})
-        response_str = json.dumps(response_dict)
-        response.__dict__.get('response')[0] = response_str.encode()
-
-
-
+    try:
+        # 刷新重新写回token到Response的情况
+        if getattr(req, 'token', None):
+            print(response.__dict__)
+            response_str = response.__dict__.get('response')[0].decode()
+            response_dict = json.loads(response_str)
+            response_dict.update({'token': getattr(req, 'token')})
+            response_str = json.dumps(response_dict)
+            response.__dict__.get('response')[0] = response_str.encode()
+    except TypeError:
+        # 处理特殊Response对象属性的情况
+        pass
+    except AttributeError:
+        # 处理没有token字段的情况
+        pass
 
 
 class Signal(object):
