@@ -47,9 +47,10 @@ def create_app():
     signal.init_app(app)  # 注册发送验证码信号
     db.init_app(app)           # 注册mongodb实例
 
+
     with app.app_context():
         get_user_model(app) # 注册用户模型表
-        register_all_model(app)   # 注册其余模型表,通过current_app.config.get('models').get(model_name)进行访问
+        register_all_model(app)   # 注册其余模型表,在应用上下文内通过current_app.config.get('models').get(model_name)进行访问
 
     got_request_exception.connect(log_exception, app) # 记录请求的异常
 

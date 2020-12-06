@@ -142,11 +142,11 @@ def append_jwt(sender, response):
     try:
         # 刷新重新写回token到Response的情况
         if getattr(req, 'token', None):
-            response_str = response.__dict__.get('response')[0].decode()
+            response_str = response.__dict__.get[0].decode()
             response_dict = json.loads(response_str)
             response_dict.update({'token': getattr(req, 'token')})
             response_str = json.dumps(response_dict)
-            response.__dict__.get('response')[0] = response_str.encode()
+            response.__dict__.get[0] = response_str.encode()
     except TypeError:
         # 处理特殊Response对象属性的情况
         pass

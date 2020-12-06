@@ -7,6 +7,7 @@ import contextlib
 from redis import Redis
 import datetime
 
+
 class BaseRedis:
     _instance = {}
     _redis_instances = {}
@@ -112,7 +113,12 @@ class BaseRedis:
             redis.ttl(key)
 
     def get_token_exp(self, id):
-        """获取token最终失效时间"""
+        """
+        :param id:用户id
+        获取token最终失效时间
+        数据结构:hash
+        """
+
         with manager_redis() as redis:
             return redis.hget(id, 'refresh_time').decode()
 
@@ -120,41 +126,125 @@ class BaseRedis:
         """
         存id号, token, 生成token起始时间,token最终过期时间
         每次检测请求token,看是否需要刷新自动获取
-        """
-        copy_ = kwargs.copy()
-        with manager_redis() as redis:
-            redis.hset(copy_.pop('id'), mapping=copy_)
 
-    def get_step(self, name, key):
+        数据结构:hash
+        """
+        _copy = kwargs.copy()
+        with manager_redis() as redis:
+            redis.hset(_copy.pop('id'), mapping=_copy)
+
+    def get_sport_value(self, member, date, type):
         """
         根据name和key获取hash中的用户某一天的步数
-        """
-        with manager_redis() as redis:
-            key = self.key('step', name)
-            step_count = redis.hget(key, key).decode()
-            return step_count
+        :param member: user.id
+        :param date: datetime(string type)
+        键:type-member
 
-    def set_step(self, name, key, step_value):
-        """
-        根据name和key以及step_value设置某用户某天的步数
+        数据结构:hash
         """
         with manager_redis() as redis:
-            name = self.key('step', name)
-            result = redis.hset(name, key=key, value=step_value)
+            name = self.key(type, member)
+            step_count = redis.hget(name, date)
+            return int(step_count)
+
+    def set_sport_value(self, member, date, value, type):
+        """
+        根据name和key以及step_value记录用户某天的运动值
+        :param member: user.id
+        :param date: datetime(string type)
+        :param step_value: step numbers
+        键:type-member
+
+        数据结构:hash, sorted set
+        """
+
+        with manager_redis() as redis:
+            pipe = redis.pipeline()
+            name = self.key(type, member)
+            result = pipe.hset(name, key=date, value=value)
+            self.update_rank_value(pipe, type, date, member, value)  # 更新全服排名
+            result = pipe.execute()
             return result
 
-    def retrieve_list_step(self, name, day=None):
+    def update_rank_value(self, pipeline, type, date, member, value):
         """
-        默认获取过去一周的运动情况
+        用户步数更新时,同步所有人排行榜的运动值
+        键:'rank'-type-date
+
+        数据结构:sorted set
+        """
+        _name = self.key('rank', type, date)
+        pipeline.zadd(_name, {member:value})
+
+
+    def retrieve_step_list(self, member, type, day=None):
+        """
+        默认获取指定用户过去一周的运动情况
+        键:type-member
+
+        数据结构:hash
         """
         day = day or 7
         # 过去时间的元祖,不包含今天
-        past = ((datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%d-%m') for i in range(1, day))
+        past = ((datetime.datetime.now() - datetime.timedelta(days=i)).strftime('%Y-%d-%m') for i in range(1, day))
         today = datetime.datetime.now().strftime('%Y-%d-%m')
         with manager_redis() as redis:
-            name = self.key('step', name)
+            name = self.key(type, member)
             result = redis.hmget(name, today, *past)
             print(result)
+            return result
+
+    def retrieve_cur_rank(self, type, today):
+        """
+        当天计数
+        获取排名列表前100名,从高到低
+        :param type:运动项目类型
+        :param today:当天日期
+        键:'rank'-type-date
+
+        数据结构:sorted set
+        """
+
+        with manager_redis() as redis:
+            name = self.key('rank', type, today)
+            pipe = redis.pipeline()
+            rank_score = pipe.zrevrange(name, 0, 99, withscores=True)  # 前100个成员排名,包含显示分数
+            print(rank_score)
+            return rank_score
+
+    def retrieve_cur_rank_user(self, type, today, member):
+        """
+        当天计数
+        获取当前用户在全服运动榜中的排名和运动值,从大到小
+        :param type:运动项目类型
+        :param today:当天日期
+        :param member: 用户id
+        键:'rank'-type-date
+
+        数据结构:sorted set
+        """
+        with manager_redis() as redis:
+            name = self.key('rank', type, today)
+            pipe = redis.pipeline()
+            rank = pipe.zrevrank(name, member)  # 获取排名
+            score = pipe.zscore(name, member)   # 获取用户的运动值
+            result = pipe.execute()
+            return result
+
+    def statistic_total_number(self, type, today):
+        """
+        统计某一类型的运动当天参加的人数
+
+        数据结构:sorted set
+        """
+        with manager_redis() as redis:
+            name = self.key('rank', type, today)
+            result = redis.zcard(name)
+            print(result)
+            return result
+
+
+
 
 @contextlib.contextmanager
 def manager_redis(redis_class=BaseRedis, redis=None):

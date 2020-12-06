@@ -7,7 +7,6 @@ import os
 
 from flask import current_app
 from werkzeug.utils import import_string
-
 from application.utils.exception import ImproperlyConfigured
 
 def get_model(import_name):
@@ -22,7 +21,7 @@ def get_user_model(app):
     try:
         app.config.setdefault('user', get_model(current_app.config.get('AUTH_USER_MODEL')))
     except ValueError:
-        raise ImproperlyConfigured("AUTH_USER_MODEL must be of the form 'app_label.model_name'")
+        raise ImproperlyConfigured("AUTH_USER_MODEL must be of the form 'app_label.module.model_name'")
     except LookupError:
         raise ImproperlyConfigured(
             "AUTH_USER_MODEL refers to model '%s' that has not been installed" % current_app.config.get('AUTH_USER_MODEL')
@@ -44,9 +43,9 @@ def register_all_model(app):
 
     try:
         model_dict = {}
-        modules = app.config.get('APPLICATION_MODELS_MODULE')
+        modules = current_app.config.get('APPLICATION_MODELS_MODULE')
         for module in modules:
-            model_dict[module.rsplit('.')[1]] = get_model(module)  # {'模型名':模型类}
-        app.config['models'] = model_dict # 添入dict
-    except ValueError:
-        pass
+            model_dict[module.rsplit('.', 1)[1]] = get_model(module)  # {'模型名':模型类}
+        app.config.setdefault('models', model_dict) # 添入dict
+    except ValueError as e:
+        raise ImproperlyConfigured("APPLICATION_MODELS_MODULE must be of the form 'app_label.module.model_name'")

@@ -60,6 +60,7 @@ class SendCodeApi(Resource):
 
         code = self.create_save_code(phone)
 
-        send_code_signal.send(self, phone_numbers=phone, template_code=current_app.config.get('TEMPLATES_CODE_REGISTER'),
-                                  template_param={'code': code})
+        send_code_signal.send(self, phone_numbers=phone,
+                              template_code=current_app.config.get('TEMPLATES_CODE_REGISTER'),
+                              template_param={'code': code})
         return response_code.send_code_success

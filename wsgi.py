@@ -7,7 +7,7 @@
 # gunicorn 启动
 from application import create_app
 app = create_app()
-celery = app.config.get('celery')  # celery -A wsgi:celery worker -l info
+celery = app.config.get('CELERY_INSTANCE')  # celery -A wsgi:celery worker -l info
 
 if __name__ == '__main__':
     # 启动flask服务
