@@ -8,8 +8,8 @@
 from flask_restful import Resource, reqparse
 from mongoengine import NotUniqueError
 from pymongo.errors import DuplicateKeyError
-
-from application.models.user_model import User
+from flask import current_app
+from application.models import get_user_model
 from application.signals.signal import generate_token_signal
 from application.utils.exception import VerificationCodeException, CodeMissingError, \
     PasswordMissingError, ServerErrors, PasswordError, CodeError
@@ -20,6 +20,7 @@ from application.utils.redis import manager_redis, manager_redis_operation
 from application.utils.success_code import response_code
 
 
+
 class RegisterApi(Resource):
     """注册Api"""
 
@@ -27,6 +28,7 @@ class RegisterApi(Resource):
     def create_user(**kwargs):
         """创建用户"""
         try:
+            User = current_app.config.get('user')
             password = kwargs.pop('password')
             user = User(**kwargs)
             user.set_username(f"用户:{kwargs.get('phone')}")
@@ -67,6 +69,7 @@ class RegisterApi(Resource):
 class LoginApi(Resource):
     """登录Api"""
 
+
     def validate_code(self, phone, code):
         """验证验证码"""
         if not code:  # 丢失验证码
@@ -80,6 +83,7 @@ class LoginApi(Resource):
 
             # 校验用户
             try:
+                User = current_app.config.get('user')
                 user = User.objects(phone=phone).first()  # json格式数据
                 if user:
                     # 发送信号,获取token
@@ -98,6 +102,7 @@ class LoginApi(Resource):
             raise PasswordMissingError()
         password = make_password(raw_password)  # 加密
         try:
+            User = current_app.config.get('user')
             user = User.objects(phone=phone, password=password).first()  # json格式数据
             if user:
                 # 发送信号,获取token, 返回[(func, result)]

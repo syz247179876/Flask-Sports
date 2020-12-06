@@ -3,14 +3,16 @@
 # @Author : 司云中
 # @File : __init__.py.py
 # @Software: Pycharm
+
+
 import functools
 
-from flask import session
+from flask import session, g
 from application.utils.exception import AuthenticationError
 
 
-def authenticate(func):
-    """认证用户是否登录"""
+def authenticate_session(func):
+    """session认证用户是否登录"""
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -19,3 +21,12 @@ def authenticate(func):
         raise AuthenticationError()
     return wrapper
 
+def authenticate_jwt(func):
+    """jwt认证用户是否登录"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if getattr(g, 'user', None):
+            return func(*args, **kwargs)
+        raise AuthenticationError()
+    return wrapper

@@ -7,7 +7,9 @@
 from application import create_app
 from flask_script import Manager, Server
 
-from application.models.user_model import User
+from application.models import get_user_model
+
+User = get_user_model()
 
 app = create_app()
 manager = Manager(app)

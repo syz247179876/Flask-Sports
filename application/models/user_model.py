@@ -32,8 +32,6 @@ class User(db.Document):
     # 头像
     head_image = db.URLField(required=False, default='https://flask-sports.oss-cn-beijing.aliyuncs.com/1579793244834816.jpg')
 
-    USERNAME_FIELD = 'username'
-
     is_active = db.BooleanField(default=True)
 
     is_admin = db.BooleanField(default=False)
@@ -42,11 +40,18 @@ class User(db.Document):
 
     register_time = db.DateTimeField(default=datetime.datetime.now())
 
+    USERNAME_FIELD = 'username'
+
+    PHONE_FILED = 'phone'
+
     def set_username(self, param):
         self.username = param
 
     def __str__(self):
         return self.get_username()
+
+    def get_phone(self):
+        return getattr(self, self.PHONE_FILED)
 
     def get_username(self):
         """获取用户名"""
