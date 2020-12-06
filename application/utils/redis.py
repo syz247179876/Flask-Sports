@@ -128,6 +128,13 @@ class BaseRedis:
             redis.hset(copy_.pop('id'),mapping=copy_)
 
 
+    def get_step(self, name, key):
+        """根据name和key获取hash中的用户某一天的步数"""
+        with manager_redis() as redis:
+            step_count = redis.hget(name, key).decode()
+            return step_count
+
+
 @contextlib.contextmanager
 def manager_redis(redis_class=BaseRedis, redis=None):
     try:

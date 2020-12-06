@@ -95,6 +95,14 @@ def parse_jwt(sender, **kwargs):
     """
     Parse token from client
     then, generate new user instance, which would be assigned to flask.g
+    执行流程:
+    1.获取headers中的Bearer-Token,如果有进入步骤2,否则函数执行结束
+    2.解码token获取payload,获取用户id,生成用户对象赋值给g.user
+    3.如果在第2步中,token突然失效了,进入第4步;如果token不正确,进入第5步;否则函数执行结束
+    4.异常捕获,刷新token,如果进入第6步--刷新token
+    5.token不正确,抛出token不正确异常
+    6.从redis中根据id拿hash table中的refresh_time, 校验当前时间是否超过刷新时间,如果未超时,
+    只拿id,旧token中的payload,生成新的token,返回;否则抛出强制登录异常
     """
     User = current_app.config.get('user')
     global id, payload
@@ -110,7 +118,7 @@ def parse_jwt(sender, **kwargs):
             payload = jwt.decode(token, key=current_app.config.get('SECRET'), issuer=current_app.config.get('ISSUER'),
                                  leetway=datetime.timedelta(days=expire_day),
                                  algorithms='HS256')
-            id = payload.get('id')  # 拿到用户id
+            id = payload.get('id')  # 拿到用户id,说明token还未过期,不需要取redis中拿新的token
             g.user = User.objects(id=ObjectId(id)).first()  # 创建用户对象赋值给全局代理对象g.user,以后通过g.user判断当前用户是否认证!
         except ExpiredSignatureError:
             # 在解析payload过程中突然过期,重新生成
