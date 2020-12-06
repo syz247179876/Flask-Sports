@@ -18,6 +18,7 @@ from jwt.exceptions import ExpiredSignatureError, DecodeError
 from application.signals.signal import send_code_signal
 from application.signals.signal import update_session_user_signal, generate_token_signal
 from application.tasks.user_task import send_phone
+from application.tasks.sport_task import timer_save_step_number
 from application.utils.exception import SessionUserInformationException, ServerTokenExpire, TokenDecodeError
 from application.utils.redis import manager_redis_operation
 
@@ -161,7 +162,12 @@ class Signal(object):
     def register_task(self, celery):
         """注册任务"""
         tasks = {}
-        tasks.update({send_phone.__name__: celery.task(send_phone)})  # 注册send_phone任务
+        tasks.update(
+             {
+                send_phone.__name__: celery.task(send_phone),
+                timer_save_step_number.__name__:celery.task(timer_save_step_number)
+             }
+        )  # 注册send_phone任务
         return tasks
 
     def configure_celery(self, app):
