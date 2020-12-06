@@ -26,7 +26,7 @@ class PyCelery(object):
             config = app.config
 
         celery = Celery(name, broker=app.config['CELERY_BROKER_URL'])
-        celery.config_from_object(config)
+        celery.config_from_object(config, namespace='CELERY')
         # celery.autodiscover_tasks()
         app.config.update({'CELERY_INSTANCE':celery})
         setattr(self, 'app', app)

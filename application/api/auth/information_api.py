@@ -9,7 +9,7 @@
 修改个人信息API
 """
 
-from flask import session, current_app, g
+from flask import current_app, g
 from flask_restful import Resource, fields, marshal_with, reqparse
 
 from application.api.auth import authenticate_jwt
@@ -20,7 +20,7 @@ from application.utils.success_code import response_code
 
 
 class InformationApi(Resource):
-    method_decorators = [authenticate_jwt] # 认证
+    method_decorators = [authenticate_jwt]  # 认证
 
     # 过滤字段
     resource_fields = {

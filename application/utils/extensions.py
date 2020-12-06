@@ -12,7 +12,6 @@ from application.utils.redis import BaseRedis
 from application.utils.sms import sms
 
 
-
 celery_app = PyCelery() # celery application
 
 redis_app = BaseRedis   # redis application
@@ -22,7 +21,6 @@ signal = Signal()   # signal
 sms = sms               # sms service
 
 db = MongoEngine()      # mongodb database
-
 
 encryption =  PBKDF2PasswordHasher()  # PBKDF2 encryption
 

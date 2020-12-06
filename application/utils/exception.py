@@ -103,6 +103,8 @@ CODE_ERROR = 1015
 SERVER_TOKEN_EXPIRE = 1016
 # TOKEN校验失败
 TOKEN_DECODE_ERROR = 1017
+# MONGODB校验失败
+MONGODB_VALIDATION_ERROR = 1018
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -290,6 +292,17 @@ class TokenDecodeError(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
+class MongodbValidationError(ApiException):
+    """Mongodb校验错误"""
+
+    code = HTTP_400_BAD_REQUEST
+    error_code = MONGODB_VALIDATION_ERROR
+    description = 'Mongodb Validation Error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
 
 class ImproperlyConfigured(Exception):
     """Flask is somehow improperly configured"""

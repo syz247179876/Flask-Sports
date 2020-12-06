@@ -18,6 +18,7 @@ from jwt.exceptions import ExpiredSignatureError, DecodeError
 from application.signals.signal import send_code_signal
 from application.signals.signal import update_session_user_signal, generate_token_signal
 from application.tasks.user_task import send_phone
+from application.tasks.sport_task import timer_save_step_number
 from application.utils.exception import SessionUserInformationException, ServerTokenExpire, TokenDecodeError
 from application.utils.redis import manager_redis_operation
 
@@ -95,6 +96,14 @@ def parse_jwt(sender, **kwargs):
     """
     Parse token from client
     then, generate new user instance, which would be assigned to flask.g
+    执行流程:
+    1.获取headers中的Bearer-Token,如果有进入步骤2,否则函数执行结束
+    2.解码token获取payload,获取用户id,生成用户对象赋值给g.user
+    3.如果在第2步中,token突然失效了,进入第4步;如果token不正确,进入第5步;否则函数执行结束
+    4.异常捕获,刷新token,如果进入第6步--刷新token
+    5.token不正确,抛出token不正确异常
+    6.从redis中根据id拿hash table中的refresh_time, 校验当前时间是否超过刷新时间,如果未超时,
+    只拿id,旧token中的payload,生成新的token,返回;否则抛出强制登录异常
     """
     User = current_app.config.get('user')
     global id, payload
@@ -110,14 +119,12 @@ def parse_jwt(sender, **kwargs):
             payload = jwt.decode(token, key=current_app.config.get('SECRET'), issuer=current_app.config.get('ISSUER'),
                                  leetway=datetime.timedelta(days=expire_day),
                                  algorithms='HS256')
-            id = payload.get('id')  # 拿到用户id
+            id = payload.get('id')  # 拿到用户id,说明token还未过期,不需要取redis中拿新的token
             g.user = User.objects(id=ObjectId(id)).first()  # 创建用户对象赋值给全局代理对象g.user,以后通过g.user判断当前用户是否认证!
         except ExpiredSignatureError:
             # 在解析payload过程中突然过期,重新生成
             # token到期异常,判断refresh_jwt是否还在有效期
             token = again_token(payload, id)
-            # 添加到headers
-            req.headers['Bearer-Token'] = token
             req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
         except DecodeError:
             # token错误
@@ -132,15 +139,15 @@ def append_jwt(sender, response):
     3.编码,写回response.__dict__
     """
     req = request
+    print(response.__dict__)
     try:
         # 刷新重新写回token到Response的情况
         if getattr(req, 'token', None):
-            print(response.__dict__)
-            response_str = response.__dict__.get('response')[0].decode()
+            response_str = response.__dict__.get[0].decode()
             response_dict = json.loads(response_str)
             response_dict.update({'token': getattr(req, 'token')})
             response_str = json.dumps(response_dict)
-            response.__dict__.get('response')[0] = response_str.encode()
+            response.__dict__.get[0] = response_str.encode()
     except TypeError:
         # 处理特殊Response对象属性的情况
         pass
@@ -155,7 +162,12 @@ class Signal(object):
     def register_task(self, celery):
         """注册任务"""
         tasks = {}
-        tasks.update({send_phone.__name__: celery.task(send_phone)})  # 注册send_phone任务
+        tasks.update(
+             {
+                send_phone.__name__: celery.task(send_phone),
+                timer_save_step_number.__name__:celery.task(timer_save_step_number)
+             }
+        )  # 注册send_phone任务
         return tasks
 
     def configure_celery(self, app):

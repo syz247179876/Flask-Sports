@@ -75,6 +75,15 @@ class DevelopmentConfig(DefaultConfig):
 
     CELERY_TASK_NAME = 'sport-tasks'
 
+    # 异步任务
+    CELERY_BEAT_SCHEDULE = {
+        'test': {
+            'task': 'application.tasks.sport_task.timer_save_step_number',
+            'schedule': 30.0,
+            'args':(),
+        }
+    }
+
     # 阿里云短信参数
     ACCESS_KEY_ID = ''
     ACCESS_KEY_SECRET = ''
@@ -95,6 +104,15 @@ class DevelopmentConfig(DefaultConfig):
 
     # 认证模型类
     AUTH_USER_MODEL = 'application.models.user_model.User'
+
+    # 模型模块
+    APPLICATION_MODELS_MODULE = [
+        'application.models.user_model.Address',
+        'application.models.sport_model.StepSport',
+        'application.models.integral_model.Commodity',
+    ]
+
+
 
 
 development_config = DevelopmentConfig()

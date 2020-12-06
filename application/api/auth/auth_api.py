@@ -124,6 +124,7 @@ class LoginApi(Resource):
 
         way = args.get('way')
         func_str = f"validate_{way}"
+
         func = getattr(self, func_str)
         token = func(args.get('phone'), args.get(way))  # 获取token
         response_code.login_success.update({'token': token})  # 添加token

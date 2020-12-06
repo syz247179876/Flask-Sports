@@ -76,7 +76,7 @@ class OAuthQQ(object):
             # 返回的数据 callback( {"client_id":"YOUR_APPID","openid":"YOUR_OPENID"} )\n;
             data = json.loads(response_data[10:-4])
         except Exception:
-            data = parse_qs(response_data)
+            # data = parse_qs(response_data)
             raise QQServiceUnavailable()
         openid = data.get('openid', None)
         return openid
