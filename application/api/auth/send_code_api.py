@@ -32,6 +32,7 @@ def get_verification_code():
 
 class SendCodeApi(Resource):
     """发送验证码API"""
+    CACHE_NAME = 'code'
 
     def exist_phone(self, phone):
         User = current_app.config.get('user')
@@ -43,7 +44,7 @@ class SendCodeApi(Resource):
         """创建存储验证码"""
 
         code = get_verification_code()
-        with manager_redis_operation() as manager:
+        with manager_redis_operation(self.CACHE_NAME) as manager:
             manager.save_code(phone, code, time=600)
         return code
 

@@ -12,6 +12,7 @@ from application.models.user_model import User
 from extensions.redis import manager_redis_operation
 from application.models.sport_model import StepSport
 
+CACHE_NAME = 'user'
 
 def compute_integral(step):
     """

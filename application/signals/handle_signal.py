@@ -21,6 +21,7 @@ from application.tasks.sport_task import timer_rewrite_step_number
 from application.utils.exception import SessionUserInformationException, ServerTokenExpire, TokenDecodeError
 from extensions.redis import manager_redis_operation
 
+CACHE_NAME = 'code'
 
 def update_session_user(sender, **kwargs):
     """
@@ -73,7 +74,7 @@ def generate_token(sender, **kwargs):
     token = jwt.encode(kwargs, secret, algorithm='HS256')
 
     # 存入redis,便于根据最终过期刷新token
-    with manager_redis_operation() as manager:
+    with manager_redis_operation(CACHE_NAME) as manager:
         manager.save_token_kwargs(id=kwargs.get('id'), token=token, start_time=time.mktime(start_time.timetuple()),
                                   refresh_time=time.mktime(refresh_time.timetuple()))
     return token.decode()
@@ -82,14 +83,14 @@ def generate_token(sender, **kwargs):
 def record_ip(host):
     """记录目标用户ip"""
 
-    with manager_redis_operation() as manager:
+    with manager_redis_operation(CACHE_NAME) as manager:
         ip, port = host.split(':')
         manager.record_ip(ip)
 
 
 def again_token(payload=None, id=None):
     """再次生成token"""
-    with manager_redis_operation() as manager:
+    with manager_redis_operation(CACHE_NAME) as manager:
         refresh_time = manager.get_token_exp(id)  # 获取token最终失效期
     now = time.mktime(datetime.datetime.now().timetuple())
     if refresh_time > now:

@@ -54,48 +54,48 @@ class DevelopmentConfig(DefaultConfig):
         dict(host='0.0.0.0', port=6379, password='', db=10),
     ]
 
-    CACHES = {
+    REDIS_DB = {
         'default':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 1
+            },
+        'whole':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 2
+            },
+        'user':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 3
+            },
+        'code':
             {
                 'host': '0.0.0.0',
                 'port': 6381,
                 'password': '',
                 'db': 4
             },
-        'redis1':
+        'redis4':
             {
                 'host': '0.0.0.0',
                 'port': 6381,
                 'password': '',
                 'db': 5
             },
-        'redis2':
-            {
-                'host': '0.0.0.0',
-                'port': 6381,
-                'password': '',
-                'db': 6
-            },
-        'redis3':
-            {
-                'host': '0.0.0.0',
-                'port': 6381,
-                'password': '',
-                'db': 7
-            },
-        'redis4':
-            {
-                'host': '0.0.0.0',
-                'port': 6381,
-                'password': '',
-                'db': 8
-            },
         'redis5':
             {
                 'host': '0.0.0.0',
                 'port': 6381,
                 'password': '',
-                'db': 9
+                'db': 6
             }
     }
 

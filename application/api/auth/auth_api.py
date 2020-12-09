@@ -23,6 +23,8 @@ from application.utils.success_code import response_code
 class RegisterApi(Resource):
     """注册Api"""
 
+    CACHE_NAME = 'code'
+
     @staticmethod
     def create_user(**kwargs):
         """创建用户"""
@@ -39,12 +41,10 @@ class RegisterApi(Resource):
         except NotUniqueError:
             raise UserExistedError()
 
-    @staticmethod
-    def validate_code(phone, code):
+    def validate_code(self, phone, code):
         """验证校验码"""
-        with manager_redis() as redis:
+        with manager_redis(self.CACHE_NAME) as redis:
             redis_code = redis.get(phone)
-            print(redis_code)
             if redis_code != code:
                 return False
             return True
@@ -67,14 +67,14 @@ class RegisterApi(Resource):
 
 class LoginApi(Resource):
     """登录Api"""
-
+    CACHE_NAME = 'code'
 
     def validate_code(self, phone, code):
         """验证验证码"""
         if not code:  # 丢失验证码
             raise CodeMissingError()
 
-        with manager_redis_operation() as manager:
+        with manager_redis_operation('code') as manager:
             is_checked = manager.check_code(phone, code)
 
             if not is_checked:  # code error
@@ -111,6 +111,7 @@ class LoginApi(Resource):
                 raise PasswordError()
         except Exception as e:
             # TODO: 日志记录
+            print(e)
             raise ServerErrors()
 
     def post(self):
