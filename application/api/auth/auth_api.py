@@ -44,9 +44,10 @@ class RegisterApi(Resource):
     def validate_code(self, phone, code):
         """验证校验码"""
         with manager_redis(self.CACHE_NAME) as redis:
-            redis_code = redis.get(phone)
+            redis_code = redis.get(phone).decode()
             if redis_code != code:
                 return False
+            redis.delete(phone)
             return True
 
     def post(self):
@@ -74,8 +75,8 @@ class LoginApi(Resource):
         if not code:  # 丢失验证码
             raise CodeMissingError()
 
-        with manager_redis_operation('code') as manager:
-            is_checked = manager.check_code(phone, code)
+        with manager_redis_operation() as manager:
+            is_checked = manager.check_code(phone, code, self.CACHE_NAME)
 
             if not is_checked:  # code error
                 raise CodeError()
@@ -100,19 +101,15 @@ class LoginApi(Resource):
         if not raw_password:  # 丢失密码
             raise PasswordMissingError()
         password = make_password(raw_password)  # 加密
-        try:
-            User = current_app.config.get('user')
-            user = User.objects(phone=phone, password=password).first()  # json格式数据
-            if user:
-                # 发送信号,获取token, 返回[(func, result)]
-                token = generate_token_signal.send(self, id=user.id)[0][1]
-                return token  # 取结果
-            else:
-                raise PasswordError()
-        except Exception as e:
-            # TODO: 日志记录
-            print(e)
-            raise ServerErrors()
+
+        User = current_app.config.get('user')
+        user = User.objects(phone=phone, password=password).first()  # json格式数据
+        if user:
+            # 发送信号,获取token, 返回[(func, result)]
+            token = generate_token_signal.send(self, id=user.id)[0][1]
+            return token  # 取结果
+        else:
+            raise PasswordError()
 
     def post(self):
         parser = reqparse.RequestParser(bundle_errors=True)

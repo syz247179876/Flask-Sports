@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : development.py
 # @Software: Pycharm
+import logging
 import os
 
 from celery.schedules import crontab
@@ -19,6 +20,9 @@ class DevelopmentConfig(DefaultConfig):
 
     # 密钥!
     SECRET = 'uMfBdlYid2CYfkYkpeB2PCB-NlwFhM-ppd5FC4ToGMQgRE4c_xEFAlFthHjI3N1qU1sUdcBCplaPydp1Zo_xxw'
+
+    # 日志等级
+    LOG_LEVEL = logging.ERROR
 
     # 发行人
     ISSUER = 'syz:247179876'
@@ -131,8 +135,8 @@ class DevelopmentConfig(DefaultConfig):
     }
 
     # 阿里云短信参数
-    ACCESS_KEY_ID = ''
-    ACCESS_KEY_SECRET = ''
+    ACCESS_KEY_ID = 'LTAI4GJtG2GhWyqNYmWuFuWE'
+    ACCESS_KEY_SECRET = 'GC4eyvG1clUK1afn8ZAYaYlNaFuJO9'
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
 

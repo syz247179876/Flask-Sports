@@ -44,8 +44,8 @@ class SendCodeApi(Resource):
         """创建存储验证码"""
 
         code = get_verification_code()
-        with manager_redis_operation(self.CACHE_NAME) as manager:
-            manager.save_code(phone, code, time=600)
+        with manager_redis_operation() as manager:
+            manager.save_code(phone, code, 600, self.CACHE_NAME)
         return code
 
     def post(self):

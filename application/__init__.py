@@ -6,7 +6,7 @@
 from flask import Flask
 
 from application.models import get_user_model, register_all_model
-from application.urls.sports_url import sport
+from application.urls.sport_url import sport
 from application.urls.user_urls import user
 from application.signals.handle_signal import signal
 from extensions.database import db
@@ -14,13 +14,14 @@ from extensions.extensions import celery_app, redis_app, sms
 from configs import load_config
 from flask import got_request_exception
 
+from log import setup_log
+
 CONFIGS = {
     "1": "TESTING",
     "2": "DEVELOPMENT",
     "3": "PRODUCTION"
 }
 
-config = load_config(CONFIGS['2'])  # 选择环境
 
 def log_exception(sender, exception, **extra):
     """ 记录请求的异常"""
@@ -35,8 +36,12 @@ def create_app():
 
     app.secret_key = '4A8BF09E6732FDC682988A8SYZ666AB7CF53176D08631E'
 
-    # load config
+    config = load_config(CONFIGS['2'])  # 选择环境
 
+    # load logger
+    setup_log(config)
+
+    # load config
     app.config.from_object(config)
     # register blueprint
     # app.register_blueprint(test)
@@ -55,11 +60,5 @@ def create_app():
         register_all_model(app)   # 注册其余模型表,在应用上下文内通过current_app.config.get('models').get(model_name)进行访问
 
     got_request_exception.connect(log_exception, app) # 记录请求的异常
-
-    # app.register_blueprint(bp)  # 导入认证蓝图
-    # app.register_blueprint(auth)
-    # app.register_blueprint(sport)
-    # app.register_blueprint(commodity)
-    # app.register_blueprint(error)
 
     return app

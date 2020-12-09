@@ -259,7 +259,7 @@ class ServerErrors(ApiException):
 class PasswordError(ApiException):
     code = HTTP_400_BAD_REQUEST
     error_code = PASSWORD_ERROR
-    description = 'password error'
+    description = 'password or phone error'
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
