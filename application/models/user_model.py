@@ -62,6 +62,10 @@ class User(db.Document):
         """获取用户名"""
         return getattr(self, self.USERNAME_FIELD)
 
+    def get_head_image(self):
+        """获取头像"""
+        return self.head_image
+
     @property
     def is_anonymous(self):
         """

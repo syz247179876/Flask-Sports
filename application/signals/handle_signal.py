@@ -75,6 +75,7 @@ def generate_token(sender, **kwargs):
 
     # 存入redis,便于根据最终过期刷新token
     with manager_redis_operation() as manager:
+        print(2312312)
         manager.save_token_kwargs(CACHE_NAME, id=kwargs.get('id'), token=token, start_time=time.mktime(start_time.timetuple()),
                                   refresh_time=time.mktime(refresh_time.timetuple()))
     return token.decode()

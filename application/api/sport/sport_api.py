@@ -6,7 +6,8 @@
 import datetime
 import json
 
-from flask import g
+from bson import ObjectId
+from flask import g, current_app
 from flask_restful import Resource, fields, marshal_with, reqparse
 
 from application.api.auth import authenticate_jwt
@@ -17,27 +18,58 @@ from extensions.redis import manager_redis_operation
 class RankApi(Resource):
     """当天运动排名API"""
 
-    CACHE_NAME = 'user'
+    CACHE_NAME = 'whole'
 
     method_decorators = [authenticate_jwt]
 
-    user_fields = {
+    others_fields = {
         'username': fields.String,
-        'step': fields.String,
-        'head_image': fields.String
+        'step': fields.Integer,
+        'head_image': fields.String,
+        'rank': fields.Integer
     }
 
     resource_fields = {
-        'rank_situation': fields.List(fields.Nested(user_fields))
+        'username': fields.String,
+        'step': fields.Integer,
+        'head_image': fields.String,
+        'rank': fields.Integer,
+        'others': fields.List(fields.Nested(others_fields))
     }
 
+    @marshal_with(resource_fields)
     def get(self):
         """获取当天运动排名API"""
         user = getattr(g, 'user')
 
-        with manager_redis_operation(self.CACHE_NAME) as manager:
-            result = manager.retrieve_cur_rank_user(user.id)
-            # TODO: 测试返回数据
+        with manager_redis_operation() as manager:
+            individual_rank = manager.retrieve_cur_rank_user(user.id, mold='step', redis_name=self.CACHE_NAME)
+            whole_rank = manager.retrieve_cur_rank('step',redis_name=self.CACHE_NAME)
+
+        whole_list = []
+        # 解析sorted set,生成user数据,序列化对象
+        level = 1
+        for single in whole_rank:
+            dicts = {}
+            user_id = single[0].decode()
+            user = current_app.config.get('user').objects(id=ObjectId(user_id)).first()
+            dicts.update({
+                'username': user.get_username(),
+                'head_image': user.head_image,
+                'step':single[1],
+                'rank':level  # 排名
+            })
+            level += 1
+            whole_list.append(dicts)
+
+        data = json.loads(user.to_json())
+        # 生成最终数据
+        data.update({
+            'rank': individual_rank[0] + 1,  # redis取 排名第一为0
+            'step': individual_rank[1],
+            'others': whole_list
+        })
+        return data
 
 
 class CounterApi(Resource):
@@ -45,6 +77,7 @@ class CounterApi(Resource):
     当天实时获取当前用户的计数器步数
     """
     CACHE_NAME = 'user'
+    CACHE_NAME_ANOTHER = 'whole'
 
     method_decorators = [authenticate_jwt]
 
@@ -57,13 +90,13 @@ class CounterApi(Resource):
         'step': fields.Integer
     }
 
-
     @marshal_with(resource_fields)
     def get(self):
         """显示用户步数"""
         user = getattr(g, 'user')  # 获取用户对象
-        with manager_redis_operation(self.CACHE_NAME) as manager:
-            step = manager.get_sport_value(str(user.id), datetime.datetime.now().strftime('%Y-%m-%d'), type='step')
+        with manager_redis_operation() as manager:
+            step = manager.get_sport_value(str(user.id), datetime.datetime.now().strftime('%Y-%m-%d'), mold='step',
+                                           redis_name=self.CACHE_NAME)
             step = step if step else 0
             user_dict = json.loads(user.to_json())
             user_dict.update({'step': step})
@@ -76,13 +109,11 @@ class CounterApi(Resource):
         args = parser.parse_args()
         user = getattr(g, 'user')
         today = datetime.datetime.now().strftime('%Y-%m-%d')
-        with manager_redis_operation(self.CACHE_NAME) as manager:
+        with manager_redis_operation() as manager:
             # 设置用户步数,并更新全服运动值榜
-            update_user = manager.set_sport_value(user.id, today, args.get('step'), 'step')
-            update_whole = manager.update_whole_rank(user.id, today, args.get('step'), 'step')
-            if update_user and update_whole:
-                return {'step_status': True}, 204
-            return {'step_status': False}, 204
+            manager.set_sport_value(user.id, today, args.get('step'), 'step', self.CACHE_NAME)
+            manager.update_whole_rank(user.id, today, args.get('step'), 'step', self.CACHE_NAME_ANOTHER)
+            return {'step_status': True}, 204
 
 
 class ListCounterApi(Resource):
@@ -142,11 +173,11 @@ class ListCounterApi(Resource):
         for instance in sport_instances:
             data_dict = {
                 'date': instance.date.strftime('%Y-%m-%d'),  # 日期
-                'step': instance.step,                       # 运动步数
-                'status': instance.status_display,       # 运动状态
-                'goal': instance.goal_display,           # 运动目标
+                'step': instance.step,  # 运动步数
+                'status': instance.status_display,  # 运动状态
+                'goal': instance.goal_display,  # 运动目标
                 'member_rank': instance.member_display,  # 获取会员等级
-                'is_member': instance.is_member,             # 是否是会员
+                'is_member': instance.is_member,  # 是否是会员
             }
             data_list.append(data_dict)
             date_list.append(instance.date.strftime('%Y-%m-%d'))
@@ -164,68 +195,3 @@ class ListCounterApi(Resource):
         sport_data = self.generate_data(sport_instances)
         data = {'sport_data': sport_data, 'username': user.username, 'head_image': user.head_image}
         return data
-
-
-# class RecordTodayStepSport(Resource):
-#     """
-#     定时任务,记录用户当天的运动情况
-#     将redis中的步数取出,构建StepSport对象,写回mongodb
-#     每晚11点触发
-#     """
-#
-#     method_decorators = [authenticate_jwt]
-#
-#     @staticmethod
-#     def compute_integral(step):
-#         """
-#         计算积分值
-#         integral = step / 100
-#         """
-#         return step // 100
-#
-#     @staticmethod
-#     def calculation_status(step):
-#         """
-#         推算出当日运动状态
-#         :param step:
-#         :return:
-#         """
-#
-#         # status = ['Pretty Good', 'Preferably', 'Commonly', 'Just so so', 'To bad']
-#         point = [25000, 16000, 9000, 3000, step]
-#         point.sort(reverse=True)
-#         return point.index(step) + 1
-#
-#     def get(self):
-#         """异步任务,请求模拟异步任务写回"""
-#         data_dict = {}
-#         user = getattr(g, 'user')
-#         today = datetime.datetime.now().strftime('%Y-%m-%d')
-#         with manager_redis_operation() as manager:
-#             step = int(manager.get_sport_value(user.id, today, 'step'))
-#             print(step)
-#             # TODO: 测试返回数据
-#
-#         data_dict.update(
-#             {
-#                 'integral': self.compute_integral(step),
-#                 'step': step,
-#                 'status': self.calculation_status(step),
-#                 'user': user
-#             }
-#         )
-#
-#         print(data_dict)
-#         try:
-#             step_sport = StepSport(**data_dict).save()
-#             return {'step_sport':'pk'} , 204
-#         except DuplicateKeyError:
-#             print(1)
-#             return MongodbValidationError()
-#         except NotUniqueError as e:
-#             print(2)
-#             print(e)
-#             raise MongodbValidationError()
-#         except ValidationError:
-#             print(3)
-#             raise MongodbValidationError()

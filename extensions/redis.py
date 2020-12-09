@@ -49,7 +49,7 @@ class BaseRedis:
 
             for name, config in db.items():
                 cls._redis_instances[name] = Redis(**config)
-            cls._instance[cls.__name__] = cls._redis_instances.get('default')  # 默认配置default
+            cls._instance[cls.__name__] = cls(db, cls._redis_instances.get('default'))  # 默认配置default
         return cls._instance[cls.__name__]
 
     @property
@@ -171,8 +171,8 @@ class BaseRedis:
         :param redis_name: redis name in config
         :param mold: 运动类型
         :param member: user.id
-        :param date: datetime(string type)
-        键:type-date
+        :param date: datetime(string mold)
+        键:mold-date
         值:{member:value}
 
         数据结构:hash
@@ -185,13 +185,13 @@ class BaseRedis:
 
     def set_sport_value(self, member, date, value, mold, redis_name='default'):
         """
-        根据type和date以及value记录用户某天的运动值
+        根据mold和date以及value记录用户某天的运动值
         :param redis_name: redis name in config
         :param mold: 运动类型
         :param value: 运动值
         :param member: user.id
-        :param date: datetime(string type)
-        键:type-date
+        :param date: datetime(string mold)
+        键:mold-date
         值:{member:value}
 
         数据结构:hash, sorted set
@@ -203,8 +203,7 @@ class BaseRedis:
             pipe.hset(name_time, key=member, value=value)  # 设置以时间为轴的hash
             name_user = self.key(mold, member)
             pipe.hset(name_user, key=date, value=value)  # 以用户为轴的hash
-            result = pipe.execute()
-            return result
+            pipe.execute()
 
     def update_whole_rank(self, member, date, value, mold, redis_name='default'):
         """
@@ -234,10 +233,9 @@ class BaseRedis:
         with manager_redis(redis_name) as redis:
             name = self.key(mold, member)
             result = redis.hmget(name, today, *past)
-            print(result)
             return result
 
-    def retrieve_cur_rank(self, mold, today, redis_name='default'):
+    def retrieve_cur_rank(self, mold, today=None, redis_name='default'):
         """
         当天计数
         获取排名列表前100名,从高到低
@@ -248,14 +246,13 @@ class BaseRedis:
 
         数据结构:sorted set
         """
-
+        today = today or (datetime.datetime.now()).strftime('%Y-%m-%d')
         with manager_redis(redis_name) as redis:
             name = self.key('rank', mold, today)
-            pipe = redis.pipeline()
-            rank_score = pipe.zrevrange(name, 0, 99, withscores=True)  # 前100个成员排名,包含显示分数
+            rank_score = redis.zrevrange(name, 0, 99, withscores=True)  # 前100个成员排名,包含显示分数
             return rank_score
 
-    def retrieve_cur_rank_user(self, member, mold, today, redis_name='default'):
+    def retrieve_cur_rank_user(self, member, mold, today=None, redis_name='default'):
         """
         当天计数
         获取当前用户在全服运动榜中的排名和运动值,从大到小
@@ -264,11 +261,12 @@ class BaseRedis:
         :param today:当天日期
         :param member: 用户id
         键:'rank'-mold-date
+        :return [rank ,score]
 
         数据结构:sorted set
         """
         member = str(member)
-
+        today = today or (datetime.datetime.now()).strftime('%Y-%m-%d')
         with manager_redis(redis_name) as redis:
             name = self.key('rank', mold, today)
             pipe = redis.pipeline()
@@ -294,9 +292,8 @@ class BaseRedis:
         将以时间为轴的所有用户当天数据写回mongodb
         :return {member:value}
         """
-
+        today = date or (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
         with manager_redis(redis_name) as redis:
-            today = date or (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
             name = self.key(mold, today)
             result_dict = redis.hgetall(name)
             return result_dict
@@ -311,6 +308,7 @@ def manager_redis(redis_name=None, redis_class=BaseRedis):
         yield redis                 # 如有异常,回退到此,抛出异常
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
+        print(2321)
         print(e)
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
@@ -322,5 +320,6 @@ def manager_redis_operation(redis_class=BaseRedis):
         instance = redis_class.redis_operation_instance()
         yield instance
     except Exception as e:
+        print(2312)
         # TODO:redis宕机, 发送邮件到我邮箱
         print(e)

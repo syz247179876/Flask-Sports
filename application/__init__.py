@@ -6,7 +6,7 @@
 from flask import Flask
 
 from application.models import get_user_model, register_all_model
-from application.urls.sports_url import sport
+from application.urls.sport_url import sport
 from application.urls.user_urls import user
 from application.signals.handle_signal import signal
 from extensions.database import db
