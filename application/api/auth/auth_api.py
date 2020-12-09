@@ -74,8 +74,8 @@ class LoginApi(Resource):
         if not code:  # 丢失验证码
             raise CodeMissingError()
 
-        with manager_redis_operation('code') as manager:
-            is_checked = manager.check_code(phone, code)
+        with manager_redis_operation() as manager:
+            is_checked = manager.check_code(phone, code, self.CACHE_NAME)
 
             if not is_checked:  # code error
                 raise CodeError()

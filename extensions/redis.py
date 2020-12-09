@@ -61,10 +61,9 @@ class BaseRedis:
     def redis(self, value):
         self.__redis = value
 
-    @classmethod
-    def get_redis(cls, redis_name):
+    def get_redis(self, redis_name):
         """从redis实例群中获取制定的redis_name"""
-        return cls._redis_instances[redis_name]
+        return self._redis_instances[redis_name]
 
     @classmethod
     def redis_instance(cls, redis_name):
@@ -72,9 +71,9 @@ class BaseRedis:
         return cls._redis_instances[redis_name]
 
     @classmethod
-    def redis_operation_instance(cls, redis_name):
+    def redis_operation_instance(cls):
         """获取当前操作类(BaseRedis)的实例"""
-        return cls._instance[cls.__name__].get_redis(redis_name)
+        return cls._instance[cls.__name__]
 
     @staticmethod
     def record_ip(ip, redis_name='default'):
@@ -318,10 +317,9 @@ def manager_redis(redis_name=None, redis_class=BaseRedis):
 
 
 @contextlib.contextmanager
-def manager_redis_operation(redis_name=None, redis_class=BaseRedis):
-    redis_name = redis_name or 'default'
+def manager_redis_operation(redis_class=BaseRedis):
     try:
-        instance = redis_class.redis_operation_instance(redis_name)
+        instance = redis_class.redis_operation_instance()
         yield instance
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱

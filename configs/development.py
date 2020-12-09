@@ -3,6 +3,7 @@
 # @Author : 司云中
 # @File : development.py
 # @Software: Pycharm
+import logging
 import os
 
 from celery.schedules import crontab
@@ -19,6 +20,9 @@ class DevelopmentConfig(DefaultConfig):
 
     # 密钥!
     SECRET = 'uMfBdlYid2CYfkYkpeB2PCB-NlwFhM-ppd5FC4ToGMQgRE4c_xEFAlFthHjI3N1qU1sUdcBCplaPydp1Zo_xxw'
+
+    # 日志等级
+    LOG_LEVEL = logging.ERROR
 
     # 发行人
     ISSUER = 'syz:247179876'

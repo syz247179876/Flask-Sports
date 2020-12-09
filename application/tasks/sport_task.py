@@ -33,12 +33,12 @@ def calculation_status(step):
     point.sort(reverse=True)
     return point.index(step) + 1
 
-def timer_rewrite_step_number(type):
+def timer_rewrite_step_number(mold):
     """
     定时从redis写回mongodb
     """
     with manager_redis_operation() as manager:
-        result_dict = manager.rewrite_data_to_mongo(type=type)
+        result_dict = manager.rewrite_data_to_mongo(mole=mold, redis_name=CACHE_NAME)
         for member, value in result_dict.items():
             if not isinstance(member, str) or not isinstance(value, int):
                 member = str(member)
