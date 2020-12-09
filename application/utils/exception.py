@@ -107,6 +107,10 @@ TOKEN_DECODE_ERROR = 1017
 MONGODB_VALIDATION_ERROR = 1018
 # 用户已经存在
 USER_EXISTED_ERROR = 1019
+# 用户积分不足
+INTEGRAL_INSUFFICIENT_ERROR = 1020
+# 通用校验异常错误
+DATA_UNIVERSAL_EXCEPTION = 1021
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -314,6 +318,27 @@ class UserExistedError(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
+class IntegralInsufficientError(ApiException):
+    """积分值不够错误"""
+
+    code = HTTP_500_INTERNAL_SERVER_ERROR
+    error_code = INTEGRAL_INSUFFICIENT_ERROR
+    description = 'The integral of user is insufficient'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class DataUniversalException(ApiException):
+    """通用数据校验异常"""
+
+    code = HTTP_400_BAD_REQUEST
+    error_code = DATA_UNIVERSAL_EXCEPTION
+    description = 'Data verification is abnormal'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
 
 
 class ImproperlyConfigured(Exception):

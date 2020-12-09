@@ -6,6 +6,7 @@
 from flask import Flask
 
 from application.models import get_user_model, register_all_model
+from application.urls.integral_url import integral
 from application.urls.sport_url import sport
 from application.urls.user_urls import user
 from application.signals.handle_signal import signal
@@ -47,6 +48,7 @@ def create_app():
     # app.register_blueprint(test)
     app.register_blueprint(user)
     app.register_blueprint(sport)
+    app.register_blueprint(integral)
 
     celery_app.init_app(app)   # 注册celery应用
     redis_app.init_app(app)    # 注册redis应用
