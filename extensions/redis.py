@@ -43,11 +43,10 @@ class BaseRedis:
 
             assert 'default' in db, " 'default' config should be declared in CACHES attribute"
 
-            for type, config in db.items():
-                cls._redis_instances[type] = Redis(**config)
+            for name, config in db.items():
+                cls._redis_instances[name] = Redis(**config)
             cls._instance[cls.__name__] = cls._redis_instances.get('default')  # 默认配置default
         return cls._instance[cls.__name__]
-
 
     @property
     def redis(self):
@@ -67,7 +66,8 @@ class BaseRedis:
         """获取当前操作类(BaseRedis)的实例"""
         return cls._instance[cls.__name__]
 
-    def record_ip(self, ip):
+    @staticmethod
+    def record_ip(ip):
         """记录IP"""
         with manager_redis() as redis:
             redis.hset(name='ip_record', key=ip, value=datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -83,7 +83,8 @@ class BaseRedis:
         # return make_password('-'.join(keywords), salt=self.salt)   # 加密贼耗时
         return '-'.join(keywords)
 
-    def check_code(self, key, value):
+    @staticmethod
+    def check_code(key, value):
         """
         检查value是否和redis中key映射的value对应？
         :param key: key in key
@@ -99,7 +100,8 @@ class BaseRedis:
             else:
                 return False
 
-    def save_code(self, key, code, time):
+    @staticmethod
+    def save_code(key, code, time):
         """
         缓存验证码并存活 time（s）
         :param key: key of redis
@@ -113,7 +115,8 @@ class BaseRedis:
                 return False
             redis.setex(key, time, code)  # 原子操作，设置键和存活时间
 
-    def get_ttl(self, key):
+    @staticmethod
+    def get_ttl(key):
         """
         获取某个键的剩余过期时间
         键永久：-1
@@ -126,17 +129,19 @@ class BaseRedis:
                 return False
             redis.ttl(key)
 
-    def get_token_exp(self, id):
+    @staticmethod
+    def get_token_exp(identity):
         """
-        :param id:用户id
+        :param identity:用户id
         获取token最终失效时间
         数据结构:hash
         """
 
         with manager_redis() as redis:
-            return redis.hget(id, 'refresh_time').decode()
+            return redis.hget(identity, 'refresh_time').decode()
 
-    def save_token_kwargs(self, **kwargs):
+    @staticmethod
+    def save_token_kwargs(**kwargs):
         """
         存id号, token, 生成token起始时间,token最终过期时间
         每次检测请求token,看是否需要刷新自动获取
@@ -148,9 +153,10 @@ class BaseRedis:
         with manager_redis() as redis:
             redis.hset(_copy.pop('id'), mapping=_copy)
 
-    def get_sport_value(self, member, date, type):
+    def get_sport_value(self, member, date, mold):
         """
         根据name和date获取hash中的用户某一天的步数
+        :param mold: 运动类型
         :param member: user.id
         :param date: datetime(string type)
         键:type-date
@@ -158,18 +164,19 @@ class BaseRedis:
 
         数据结构:hash
         """
-        member = str(member) # 用户id
+        member = str(member)  # 用户id
         with manager_redis() as redis:
-            name = self.key(type, date)
+            name = self.key(mold, date)
             step_count = redis.hget(name, member)
             return step_count
 
-    def set_sport_value(self, member, date, value, type):
+    def set_sport_value(self, member, date, value, mold):
         """
         根据type和date以及value记录用户某天的运动值
+        :param mold: 运动类型
+        :param value: 运动值
         :param member: user.id
         :param date: datetime(string type)
-        :param step_value: step numbers
         键:type-date
         值:{member:value}
 
@@ -178,30 +185,29 @@ class BaseRedis:
         member = str(member)
         with manager_redis() as redis:
             pipe = redis.pipeline()
-            name_time = self.key(type, date)
+            name_time = self.key(mold, date)
             pipe.hset(name_time, key=member, value=value)  # 设置以时间为轴的hash
-            name_user = self.key(type, member)
-            pipe.hset(name_user, key=date, value=value)    # 以用户为轴的hash
-            self.update_rank_value(pipe, type, date, member, value)  # 更新全服排名
+            name_user = self.key(mold, member)
+            pipe.hset(name_user, key=date, value=value)  # 以用户为轴的hash
+            self.update_rank_value(pipe, mold, date, member, value)  # 更新全服排名
             result = pipe.execute()
             return result
 
-    def update_rank_value(self, pipeline, type, date, member, value):
+    def update_rank_value(self, pipeline, mold, date, member, value):
         """
         用户步数更新时,同步所有人排行榜的运动值
-        键:-type-date
+        键:-mold-date
         值:{member:port}
 
         数据结构:sorted set
         """
-        name = self.key('rank', type, date)
-        pipeline.zadd(name, {member:value})
+        name = self.key('rank', mold, date)
+        pipeline.zadd(name, {member: value})
 
-
-    def retrieve_step_list(self, member, type, day=None):
+    def retrieve_step_list(self, member, mold, day=None):
         """
         默认获取指定用户过去一周的运动情况
-        键:type-member
+        键:mold-member
 
         数据结构:hash
         """
@@ -211,50 +217,50 @@ class BaseRedis:
         past = ((datetime.datetime.now() - datetime.timedelta(days=i)).strftime('%Y-%d-%m') for i in range(1, day))
         today = datetime.datetime.now().strftime('%Y-%d-%m')
         with manager_redis() as redis:
-            name = self.key(type, member)
+            name = self.key(mold, member)
             result = redis.hmget(name, today, *past)
             print(result)
             return result
 
-    def retrieve_cur_rank(self, type, today):
+    def retrieve_cur_rank(self, mold, today):
         """
         当天计数
         获取排名列表前100名,从高到低
-        :param type:运动项目类型
+        :param mold:运动项目类型
         :param today:当天日期
-        键:'rank'-type-date
+        键:'rank'-mold-date
 
         数据结构:sorted set
         """
 
         with manager_redis() as redis:
-            name = self.key('rank', type, today)
+            name = self.key('rank', mold, today)
             pipe = redis.pipeline()
             rank_score = pipe.zrevrange(name, 0, 99, withscores=True)  # 前100个成员排名,包含显示分数
             return rank_score
 
-    def retrieve_cur_rank_user(self, type, today, member):
+    def retrieve_cur_rank_user(self, mold, today, member):
         """
         当天计数
         获取当前用户在全服运动榜中的排名和运动值,从大到小
-        :param type:运动项目类型
+        :param mold:运动项目类型
         :param today:当天日期
         :param member: 用户id
-        键:'rank'-type-date
+        键:'rank'-mold-date
 
         数据结构:sorted set
         """
         member = str(member)
 
         with manager_redis() as redis:
-            name = self.key('rank', type, today)
+            name = self.key('rank', mold, today)
             pipe = redis.pipeline()
             pipe.zrevrank(name, member)  # 获取当前用户的排名
-            pipe.zscore(name, member)   # 获取当前用户的运动值
+            pipe.zscore(name, member)  # 获取当前用户的运动值
             result = pipe.execute()
             return result
 
-    def statistic_total_number(self, type, today):
+    def statistic_total_number(self, mold, today):
         """
         统计某一类型的运动当天参加的人数
 
@@ -262,24 +268,21 @@ class BaseRedis:
         """
 
         with manager_redis() as redis:
-            name = self.key('rank', type, today)
+            name = self.key('rank', mold, today)
             result = redis.zcard(name)
             return result
 
-    def rewrite_data_to_mongo(self, type, date=None):
+    def rewrite_data_to_mongo(self, mold, date=None):
         """
         将以时间为轴的所有用户当天数据写回mongodb
         :return {member:value}
         """
 
         with manager_redis() as redis:
-            today = date or (datetime.datetime.now()-datetime.timedelta(1)).strftime('%Y-%m-%d')
-            name = self.key(type, today)
+            today = date or (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')
+            name = self.key(mold, today)
             result_dict = redis.hgetall(name)
             return result_dict
-
-
-
 
 
 @contextlib.contextmanager
