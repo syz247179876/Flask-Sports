@@ -22,4 +22,22 @@ class Commodity(Document):
     stock = IntField(required=True, min_value=1)
 
     # 图片
-    head_image = URLField(required=True)
+    image = URLField(required=True)
+
+
+
+    def get_name(self):
+        """获取积分商品"""
+        return self.name
+
+    def get_integral(self):
+        """获取商品所需积分值"""
+        return self.integral
+
+    def get_stock(self):
+        """获取商品库存"""
+        return self.stock
+
+    def get_image(self):
+        """获取商品大图片"""
+        return self.image

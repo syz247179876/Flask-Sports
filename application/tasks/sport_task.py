@@ -43,8 +43,6 @@ def timer_rewrite_step_number(mold):
             if not isinstance(member, str) or not isinstance(value, int):
                 member = str(member)
                 value = int(value)
-            print(member)
-            print(value)
             try:
                 user = User.objects(id=ObjectId(member)).first() # 获取user对象
                 step = {
@@ -57,7 +55,6 @@ def timer_rewrite_step_number(mold):
             except Exception as e:
                 # TODO:日志记录/邮件通知
                 print(e)
-
         print('同步成功')
 
 

@@ -135,8 +135,8 @@ class DevelopmentConfig(DefaultConfig):
     }
 
     # 阿里云短信参数
-    ACCESS_KEY_ID = 'LTAI4GJtG2GhWyqNYmWuFuWE'
-    ACCESS_KEY_SECRET = 'GC4eyvG1clUK1afn8ZAYaYlNaFuJO9'
+    ACCESS_KEY_ID = ''
+    ACCESS_KEY_SECRET = ''
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
 

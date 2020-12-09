@@ -10,7 +10,7 @@ from bson import ObjectId
 from flask import g, current_app
 from flask_restful import Resource, fields, marshal_with, reqparse
 
-from application.api.auth import authenticate_jwt
+from application.api.user import authenticate_jwt
 from application.models.sport_model import StepSport
 from extensions.redis import manager_redis_operation
 
@@ -186,7 +186,7 @@ class ListCounterApi(Resource):
             total_list.append(total_dict)
         return total_list
 
-    # @marshal_with(resource_fields)
+    @marshal_with(resource_fields)
     def get(self):
         """获取用户前7天的运动步数数据"""
         user = getattr(g, 'user')
