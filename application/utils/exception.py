@@ -105,6 +105,8 @@ SERVER_TOKEN_EXPIRE = 1016
 TOKEN_DECODE_ERROR = 1017
 # MONGODB校验失败
 MONGODB_VALIDATION_ERROR = 1018
+# 用户已经存在
+USER_EXISTED_ERROR = 1019
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -299,6 +301,16 @@ class MongodbValidationError(ApiException):
     code = HTTP_400_BAD_REQUEST
     error_code = MONGODB_VALIDATION_ERROR
     description = 'Mongodb Validation Error'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class UserExistedError(ApiException):
+    """用户已经存在"""
+
+    code = HTTP_500_INTERNAL_SERVER_ERROR
+    error_code = USER_EXISTED_ERROR
+    description = 'User has existed'
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)

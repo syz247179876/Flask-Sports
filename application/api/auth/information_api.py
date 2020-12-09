@@ -8,7 +8,7 @@
 修改密码API
 修改个人信息API
 """
-
+from bson import ObjectId
 from flask import current_app, g
 from flask_restful import Resource, fields, marshal_with, reqparse
 
@@ -36,16 +36,18 @@ class InformationApi(Resource):
         获取用户对象的唯一标识
         目前是session方法
         """
-        return g.user.get_phone()
+        return g.user.get_identity()
 
     def modify_information(self, **kwargs):
         """修改个人信息"""
         identity = self.get_user_phone()
+        print(identity)
+        print(kwargs)
         User = current_app.config.get('user')
         try:
-            User.objects(phone=identity).update_one(**kwargs)
+            User.objects(id=ObjectId(identity)).update_one(**kwargs)
             # 发送信号更新session中的user的信息
-            update_session_user_signal.send(self, **kwargs)
+            # update_session_user_signal.send(self, **kwargs)
         except Exception:
             raise ModifyInformationError()
 

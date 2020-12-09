@@ -4,10 +4,9 @@
 # @File : redis.py
 # @Software: Pycharm
 import contextlib
-
-from bson import ObjectId
-from redis import Redis
 import datetime
+
+from redis import Redis
 
 
 class BaseRedis:
@@ -138,34 +137,38 @@ class BaseRedis:
 
     def get_sport_value(self, member, date, type):
         """
-        根据name和key获取hash中的用户某一天的步数
+        根据name和date获取hash中的用户某一天的步数
         :param member: user.id
         :param date: datetime(string type)
-        键:type-member
+        键:type-date
+        值:{member:value}
 
         数据结构:hash
         """
-        member = str(member)
+        member = str(member) # 用户id
         with manager_redis() as redis:
-            name = self.key(type, member)
-            step_count = redis.hget(name, date)
+            name = self.key(type, date)
+            step_count = redis.hget(name, member)
             return step_count
 
     def set_sport_value(self, member, date, value, type):
         """
-        根据name和key以及step_value记录用户某天的运动值
+        根据type和date以及value记录用户某天的运动值
         :param member: user.id
         :param date: datetime(string type)
         :param step_value: step numbers
-        键:type-member
+        键:type-date
+        值:{member:value}
 
         数据结构:hash, sorted set
         """
         member = str(member)
         with manager_redis() as redis:
             pipe = redis.pipeline()
-            name = self.key(type, member)
-            pipe.hset(name, key=date, value=value)
+            name_time = self.key(type, date)
+            pipe.hset(name_time, key=member, value=value)  # 设置以时间为轴的hash
+            name_user = self.key(type, member)
+            pipe.hset(name_user, key=date, value=value)    # 以用户为轴的hash
             self.update_rank_value(pipe, type, date, member, value)  # 更新全服排名
             result = pipe.execute()
             return result
@@ -173,13 +176,13 @@ class BaseRedis:
     def update_rank_value(self, pipeline, type, date, member, value):
         """
         用户步数更新时,同步所有人排行榜的运动值
-        键:'rank'-type-date
+        键:-type-date
+        值:{member:port}
 
         数据结构:sorted set
         """
-        member = str(member)
-        _name = self.key('rank', type, date)
-        pipeline.zadd(_name, {member:value})
+        name = self.key('rank', type, date)
+        pipeline.zadd(name, {member:value})
 
 
     def retrieve_step_list(self, member, type, day=None):
@@ -215,7 +218,6 @@ class BaseRedis:
             name = self.key('rank', type, today)
             pipe = redis.pipeline()
             rank_score = pipe.zrevrange(name, 0, 99, withscores=True)  # 前100个成员排名,包含显示分数
-            print(rank_score)
             return rank_score
 
     def retrieve_cur_rank_user(self, type, today, member):
@@ -234,8 +236,8 @@ class BaseRedis:
         with manager_redis() as redis:
             name = self.key('rank', type, today)
             pipe = redis.pipeline()
-            rank = pipe.zrevrank(name, member)  # 获取排名
-            score = pipe.zscore(name, member)   # 获取用户的运动值
+            pipe.zrevrank(name, member)  # 获取当前用户的排名
+            pipe.zscore(name, member)   # 获取当前用户的运动值
             result = pipe.execute()
             return result
 
@@ -249,8 +251,20 @@ class BaseRedis:
         with manager_redis() as redis:
             name = self.key('rank', type, today)
             result = redis.zcard(name)
-            print(result)
             return result
+
+    def rewrite_data_to_mongo(self, type, date=None):
+        """
+        将以时间为轴的所有用户当天数据写回mongodb
+        :return {member:value}
+        """
+
+        with manager_redis() as redis:
+            today = date or (datetime.datetime.now()-datetime.timedelta(1)).strftime('%Y-%m-%d')
+            name = self.key(type, today)
+            result_dict = redis.hgetall(name)
+            return result_dict
+
 
 
 

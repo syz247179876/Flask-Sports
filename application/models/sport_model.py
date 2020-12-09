@@ -4,9 +4,8 @@
 # @File : sport_model.py
 # @Software: Pycharm
 import datetime
-
 from application.models.user_model import User
-from application.utils.extensions import db
+from extensions.database import db
 
 
 class StepSport(db.Document):

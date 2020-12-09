@@ -4,8 +4,9 @@
 # @File : user_model.py
 # @Software: Pycharm
 import datetime
-from application.utils.extensions import db
-from application.utils.hasher import make_password, check_password
+
+from extensions.database import db
+from extensions.hasher import make_password, check_password
 
 # 使用flask_mongoengine, 继承mongoengine
 class User(db.Document):
@@ -49,6 +50,10 @@ class User(db.Document):
 
     def __str__(self):
         return self.get_username()
+
+    def get_identity(self):
+        """用户唯一标识"""
+        return self.id
 
     def get_phone(self):
         return getattr(self, self.PHONE_FILED)

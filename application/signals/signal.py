@@ -16,3 +16,5 @@ update_session_user_signal = user_signals.signal('update-information')  # 更新
 generate_token_signal = user_signals.signal('generate_token')           # 生成token
 
 
+
+

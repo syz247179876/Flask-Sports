@@ -6,7 +6,6 @@
 import datetime
 import json
 
-from bson import ObjectId
 from flask import g
 from flask_restful import Resource, fields, marshal_with, reqparse
 from mongoengine import NotUniqueError, ValidationError
@@ -15,7 +14,7 @@ from pymongo.errors import DuplicateKeyError
 from application.api.auth import authenticate_jwt
 from application.models.sport_model import StepSport
 from application.utils.exception import MongodbValidationError
-from application.utils.redis import manager_redis_operation
+from extensions.redis import manager_redis_operation
 
 
 class TimerSportApi(Resource):

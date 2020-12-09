@@ -5,20 +5,19 @@
 # @Software: Pycharm
 
 
+from flask import current_app
 from flask_restful import Resource, reqparse
 from mongoengine import NotUniqueError
 from pymongo.errors import DuplicateKeyError
-from flask import current_app
-from application.models import get_user_model
+
 from application.signals.signal import generate_token_signal
 from application.utils.exception import VerificationCodeException, CodeMissingError, \
-    PasswordMissingError, ServerErrors, PasswordError, CodeError
+    PasswordMissingError, ServerErrors, PasswordError, CodeError, UserExistedError
 from application.utils.fields import phone_string, password_string, \
     identify_code_string
-from application.utils.hasher import make_password
-from application.utils.redis import manager_redis, manager_redis_operation
+from extensions.hasher import make_password
+from extensions.redis import manager_redis, manager_redis_operation
 from application.utils.success_code import response_code
-
 
 
 class RegisterApi(Resource):
@@ -36,9 +35,9 @@ class RegisterApi(Resource):
             user.save()
             return user
         except DuplicateKeyError:
-            return None
+            raise UserExistedError()
         except NotUniqueError:
-            return None
+            raise UserExistedError()
 
     @staticmethod
     def validate_code(phone, code):
@@ -62,8 +61,8 @@ class RegisterApi(Resource):
             # 验证码不正确
             raise VerificationCodeException()
         # 创建用户
-        user = self.create_user(**args)
-        return response_code.register_success if user else response_code.user_existed
+        self.create_user(**args)
+        return response_code.register_success
 
 
 class LoginApi(Resource):
@@ -87,7 +86,7 @@ class LoginApi(Resource):
                 user = User.objects(phone=phone).first()  # json格式数据
                 if user:
                     # 发送信号,获取token
-                    token = generate_token_signal.send(self, id=user.id, phone=phone)[0][1]
+                    token = generate_token_signal.send(self, id=user.id)[0][1]
                     return token  # 取结果
                 else:
                     # 密码不正确
@@ -106,7 +105,7 @@ class LoginApi(Resource):
             user = User.objects(phone=phone, password=password).first()  # json格式数据
             if user:
                 # 发送信号,获取token, 返回[(func, result)]
-                token = generate_token_signal.send(self, id=user.id, phone=phone)[0][1]
+                token = generate_token_signal.send(self, id=user.id)[0][1]
                 return token  # 取结果
             else:
                 raise PasswordError()

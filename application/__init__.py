@@ -8,7 +8,9 @@ from flask import Flask
 from application.models import get_user_model, register_all_model
 from application.urls.sports_url import sport
 from application.urls.user_urls import user
-from application.utils.extensions import celery_app, redis_app, sms, db, encryption, signal
+from application.signals.handle_signal import signal
+from extensions.database import db
+from extensions.extensions import celery_app, redis_app, sms
 from configs import load_config
 from flask import got_request_exception
 
