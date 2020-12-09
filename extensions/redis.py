@@ -19,7 +19,7 @@ class BaseRedis:
 
     @classmethod
     def init_app(cls, app):
-        return cls.choice_redis_db(app)
+        return cls.config_redis(app)
 
     @classmethod
     def choice_redis_db(cls, app):
@@ -36,6 +36,19 @@ class BaseRedis:
             cls._instance[cls.__name__] = cls(db, cls._redis_instances[db])  # 自定义操作类实例
         return cls._instance[cls.__name__]
 
+    @classmethod
+    def config_redis(cls, app):
+        if not cls._instance.setdefault(cls.__name__, None):
+            db = app.config.get('CACHES')
+
+            assert 'default' in db, " 'default' config should be declared in CACHES attribute"
+
+            for type, config in db.items():
+                cls._redis_instances[type] = Redis(**config)
+            cls._instance[cls.__name__] = cls._redis_instances.get('default')  # 默认配置default
+        return cls._instance[cls.__name__]
+
+
     @property
     def redis(self):
         return self.__redis
@@ -45,9 +58,9 @@ class BaseRedis:
         self.__redis = value
 
     @classmethod
-    def redis_instance(cls):
-        """获取存放单例字典中的实例的redis属性"""
-        return cls._instance[cls.__name__].redis
+    def redis_instance(cls, redis_name):
+        """获取存放单例字典中的redis实例"""
+        return cls._redis_instances[redis_name]
 
     @classmethod
     def redis_operation_instance(cls):
@@ -270,15 +283,15 @@ class BaseRedis:
 
 
 @contextlib.contextmanager
-def manager_redis(redis_class=BaseRedis, redis=None):
+def manager_redis(redis_class=BaseRedis, redis_name=None):
+    redis = None
+    redis_name = redis_name or 'default'
     try:
-        redis = redis_class.redis_instance()
+        redis = redis_class.redis_instance(redis_name)
         yield redis
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
-        print(231231232)
         print(e)
-        pass
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
 
@@ -290,6 +303,4 @@ def manager_redis_operation(redis_class=BaseRedis):
         yield instance
     except Exception as e:
         # TODO:redis宕机, 发送邮件到我邮箱
-        print(231231)
         print(e)
-        pass
