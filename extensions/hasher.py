@@ -6,7 +6,7 @@
 import functools
 
 from werkzeug.utils import import_string
-from application.utils.extensions import encryption
+from extensions.extensions import encryption
 from application.utils.exception import ImproperlyConfigured
 from flask import current_app
 

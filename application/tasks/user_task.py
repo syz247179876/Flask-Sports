@@ -5,7 +5,7 @@
 # @Software: Pycharm
 import uuid
 
-from application.utils.sms import sms
+from extensions.sms import sms
 from flask import current_app
 
 

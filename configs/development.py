@@ -5,6 +5,7 @@
 # @Software: Pycharm
 import os
 
+from celery.schedules import crontab
 from flask import current_app
 
 from configs.default import DefaultConfig
@@ -23,7 +24,7 @@ class DevelopmentConfig(DefaultConfig):
     ISSUER = 'syz:247179876'
 
     # 私钥文件路径
-    PRIVATE_PATH = os.path.join(BASE_DIR,'keys/private_key.pem')
+    PRIVATE_PATH = os.path.join(BASE_DIR, 'keys/private_key.pem')
 
     # 公钥文件文件路径
 
@@ -37,8 +38,8 @@ class DevelopmentConfig(DefaultConfig):
 
     # 注意url的优先级大于db
     MONGODB_SETTINGS = {
-        'db':'flask_sports',
-        'host':'mongodb://127.0.0.1:27017/flask_sports'
+        'db': 'flask_sports',
+        'host': 'mongodb://127.0.0.1:27017/flask_sports'
     }
 
     # 捆绑API中所有参数的错误
@@ -52,6 +53,51 @@ class DevelopmentConfig(DefaultConfig):
         dict(host='0.0.0.0', port=6380, password='', db=10),
         dict(host='0.0.0.0', port=6379, password='', db=10),
     ]
+
+    REDIS_DB = {
+        'default':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 1
+            },
+        'whole':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 2
+            },
+        'user':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 3
+            },
+        'code':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 4
+            },
+        'redis4':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 5
+            },
+        'redis5':
+            {
+                'host': '0.0.0.0',
+                'port': 6381,
+                'password': '',
+                'db': 6
+            }
+    }
 
     REDIS_DB_URL = {
         'host': '0.0.0.0',
@@ -77,10 +123,10 @@ class DevelopmentConfig(DefaultConfig):
 
     # 异步任务
     CELERY_BEAT_SCHEDULE = {
-        'test': {
-            'task': 'application.tasks.sport_task.timer_save_step_number',
-            'schedule': 30.0,
-            'args':(),
+        'rewrite_step_counter': {
+            'task': 'application.tasks.sport_task.timer_rewrite_step_number',
+            'args':('step',),
+            'schedule': crontab(minute=1, hour=0),
         }
     }
 
@@ -111,8 +157,6 @@ class DevelopmentConfig(DefaultConfig):
         'application.models.sport_model.StepSport',
         'application.models.integral_model.Commodity',
     ]
-
-
 
 
 development_config = DevelopmentConfig()
