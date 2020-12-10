@@ -24,6 +24,12 @@ class Commodity(Document):
     # 图片
     image = URLField(required=True)
 
+    # 商品状态,上架/下架
+    status = BooleanField(required=True)
+
+    @queryset_manager
+    def live_commodity(doc_cls, queryset):
+        return queryset.filter(status=True)
 
 
     def get_name(self):

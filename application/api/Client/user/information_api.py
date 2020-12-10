@@ -12,7 +12,7 @@ from bson import ObjectId
 from flask import current_app, g
 from flask_restful import Resource, fields, marshal_with, reqparse
 
-from application.api.user import authenticate_jwt
+from application.api.Client.user import authenticate_jwt
 from application.utils.exception import ModifyInformationError
 from application.utils.fields import username_string
 from application.utils.success_code import response_code

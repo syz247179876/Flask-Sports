@@ -7,7 +7,7 @@
 from flask_restful import Api
 from flask import Blueprint
 from application.utils.json import output_json
-from application.api.sport.sport_api import RankApi, CounterApi, ListCounterApi
+from application.api.Client.sport import RankApi, CounterApi, ListCounterApi
 
 sport = Blueprint('sport', __name__, url_prefix='/sport-api')
 

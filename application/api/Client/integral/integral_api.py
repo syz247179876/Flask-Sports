@@ -28,10 +28,18 @@ class IntegralEMallApi(Resource):
         'commodity':fields.List(fields.Nested(commodity_fields))
     }
 
+    def get_queryset(self):
+        """获取所有商品"""
+        commodity = Commodity.live_commodity()  # 搜索所有数据
+        return commodity
+
     @marshal_with(resource_fields)
     def get(self):
         """浏览商品"""
-        pass
+        commodity = self.get_queryset()
+        data = [i for i in commodity]
+
+        return {'commodity':data}
 
 
     def post(self):
@@ -58,7 +66,3 @@ class IntegralEMallApi(Resource):
         #     raise ServerError()
         else:
             return response_code.exchange_success
-
-
-
-

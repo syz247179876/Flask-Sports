@@ -7,7 +7,7 @@
 from flask_restful import Api
 from flask import Blueprint
 
-from application.api.integral.integral_api import IntegralEMallApi
+from application.api.Client.integral import IntegralEMallApi
 from application.utils.json import output_json
 
 

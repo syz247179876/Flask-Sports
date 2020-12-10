@@ -6,9 +6,9 @@
 from flask import Blueprint
 from flask_restful import Api
 
-from application.api.user.auth_api import LoginApi, RegisterApi
-from application.api.user.information_api import InformationApi
-from application.api.user.send_code_api import SendCodeApi
+from application.api.Client.user import LoginApi, RegisterApi
+from application.api.Client.user import InformationApi
+from application.api.Client.user import SendCodeApi
 from application.utils.json import output_json
 
 user = Blueprint('auth', __name__, url_prefix='/auth-api')  # 添加_解决命名冲突
