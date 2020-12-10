@@ -27,7 +27,7 @@ class Commodity(Document):
     # 商品状态,上架/下架
     status = BooleanField(required=True)
 
-    @queryset_manager
+    @queryset_manager    # 返回QuerySetManager对象
     def live_commodity(doc_cls, queryset):
         return queryset.filter(status=True)
 

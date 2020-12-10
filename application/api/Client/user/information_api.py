@@ -13,13 +13,14 @@ from flask import current_app, g
 from flask_restful import Resource, fields, marshal_with, reqparse
 
 from application.api.Client.user import authenticate_jwt
+from application.utils.api_permission import api_permission_check
 from application.utils.exception import ModifyInformationError
 from application.utils.fields import username_string
 from application.utils.success_code import response_code
 
 
 class InformationApi(Resource):
-    method_decorators = [authenticate_jwt]  # 认证
+    method_decorators = [authenticate_jwt, api_permission_check]  # 认证
 
     # 过滤字段
     resource_fields = {
