@@ -1,3 +1,6 @@
+aliyun-python-sdk-core==2.13.30
+aliyun-python-sdk-core-v3==2.13.11
+aliyun-python-sdk-kms==2.13.0
 aliyunsdkcore==1.0.3
 amqp==5.0.2
 aniso8601==8.0.0
@@ -16,6 +19,7 @@ chardet==3.0.4
 click==7.1.2
 click-didyoumean==0.0.3
 click-repl==0.1.6
+crcmod==1.7
 cryptography==3.2
 decorator==4.4.2
 defusedxml==0.6.0
@@ -23,6 +27,7 @@ distlib==0.3.1
 dnspython==2.0.0
 entrypoints==0.3
 filelock==3.0.12
+flasgger==0.9.5
 Flask==1.1.2
 Flask-Cache==0.13.1
 Flask-Login==0.5.0
@@ -44,6 +49,7 @@ ipython-genutils==0.2.0
 itsdangerous==1.1.0
 jedi==0.17.2
 Jinja2==2.11.2
+jmespath==0.10.0
 jsonschema==3.2.0
 jupyter-client==6.1.7
 jupyter-core==4.6.3
@@ -58,6 +64,7 @@ nbconvert==6.0.7
 nbformat==5.0.8
 nest-asyncio==1.4.2
 notebook==6.1.4
+oss2==2.13.1
 packaging==20.4
 pandocfilters==1.4.3
 parso==0.7.1
@@ -69,6 +76,7 @@ prompt-toolkit==3.0.8
 ptyprocess==0.6.0
 pycparser==2.20
 pycrypto==2.6.1
+pycryptodome==3.9.9
 Pygments==2.7.2
 PyJWT==1.7.1
 pymongo==3.11.0
@@ -77,6 +85,7 @@ pyparsing==2.4.7
 pyrsistent==0.17.3
 python-dateutil==2.8.1
 pytz==2020.1
+PyYAML==5.3.1
 pyzmq==19.0.2
 redis==3.5.3
 redis-py-cluster==2.1.0
