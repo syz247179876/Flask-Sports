@@ -7,6 +7,7 @@ from flask import Flask
 
 from application.models import get_user_model, register_all_model
 from application.urls.integral_url import integral
+from application.urls.manager.integral_manage_url import integral_manager
 from application.urls.sport_url import sport
 from application.urls.user_urls import user
 from application.signals.handle_signal import signal
@@ -15,6 +16,8 @@ from extensions.extensions import celery_app, redis_app, sms
 from configs import load_config
 from flask import got_request_exception
 
+from extensions.oss import oss
+from extensions.swaggers import swagger
 from log import setup_log
 
 CONFIGS = {
@@ -44,17 +47,24 @@ def create_app():
 
     # load config
     app.config.from_object(config)
+
     # register blueprint
-    # app.register_blueprint(test)
+    # Client
     app.register_blueprint(user)
     app.register_blueprint(sport)
     app.register_blueprint(integral)
 
+    # Manager
+    app.register_blueprint(integral_manager)
+
+
     celery_app.init_app(app)   # 注册celery应用
     redis_app.init_app(app)    # 注册redis应用
     sms.init_app(app)          # 注册阿里云短信服务
-    signal.init_app(app)  # 注册发送验证码信号
+    signal.init_app(app)       # 注册发送验证码信号
     db.init_app(app)           # 注册mongodb实例
+    swagger.init_app(app)      # 注册Swagger接口文档工具
+    oss.init_app(app)          # 注册OSS服务
 
 
     with app.app_context():

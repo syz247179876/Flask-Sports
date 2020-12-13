@@ -129,7 +129,7 @@ class DevelopmentConfig(DefaultConfig):
     CELERY_BEAT_SCHEDULE = {
         'rewrite_step_counter': {
             'task': 'application.tasks.sport_task.timer_rewrite_step_number',
-            'args':('step',),
+            'args': ('step',),
             'schedule': crontab(minute=1, hour=0),
         }
     }
@@ -140,12 +140,21 @@ class DevelopmentConfig(DefaultConfig):
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
 
+
     # 不同的短信模板
     TEMPLATES_CODE_LOGIN = 'SMS_199795817'
     TEMPLATES_CODE_REGISTER = 'SMS_199795814'
     TEMPLATES_CODE_IDENTIFY = 'SMS_199805896'
     TEMPLATES_CODE_MODIFY_PASSWORD = 'SMS_199805895'
     TEMPLATES_CODE_RETRIEVE_PASSWORD = ''
+
+    # OSS对象存储
+
+    OSS_ENDPOINT = 'http://oss-cn-shanghai.aliyuncs.com'
+
+    OSS_BUCKET_NAME = 'flask-sport'
+
+    OSS_BASE_URL = 'https://flask-sports.oss-cn-beijing.aliyuncs.com/'
 
     # 加密算法
     PASSWORD_HASHERS = [
@@ -161,6 +170,13 @@ class DevelopmentConfig(DefaultConfig):
         'application.models.sport_model.StepSport',
         'application.models.integral_model.Commodity',
     ]
+
+    SWAGGER = {
+        'title': '健康运动APP Api',
+        'description': '基于Flask后端的 健康运动APP OpenApi接口',
+        'host': '0.0.0.0' # 请求域名
+    }
+
 
 
 development_config = DevelopmentConfig()
