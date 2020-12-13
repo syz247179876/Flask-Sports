@@ -10,14 +10,15 @@ from extensions.hasher import make_password, check_password
 
 from mongoengine import *
 
+
 # 使用flask_mongoengine, 扩充mongoengine,提供与flask的结合管理
 class User(db.Document):
     """用户模型"""
 
     # 元属性,创建类之间修改类,增添索引
     meta = {
-        'collection':'user',
-        'indexes':[
+        'collection': 'user',
+        'indexes': [
             'phone',
         ],
         'ordering': ['-register_time']  # 按顺序显示
@@ -33,7 +34,8 @@ class User(db.Document):
     # 积分值
     integral = db.IntField(default=0)
     # 头像
-    head_image = db.URLField(required=False, default='https://flask-sports.oss-cn-beijing.aliyuncs.com/1579793244834816.jpg')
+    head_image = db.URLField(required=False,
+                             default='https://flask-sports.oss-cn-beijing.aliyuncs.com/1579793244834816.jpg')
     # 账户是否可用
     is_active = db.BooleanField(default=True)
     # 是否具备管理员权限
@@ -97,8 +99,9 @@ class User(db.Document):
         :return:
         """
         self.password = make_password(raw_password)
+        return self.password
 
-    def check_password(self, raw_password, update=True):
+    def check_password(self, raw_password):
         """
         Firstly, checking password, if password doesn't correct, return False.
         Secondly, modifying password, if update attribute is set True
@@ -120,12 +123,28 @@ class User(db.Document):
         """检查是否具备管理员的权限"""
         return self.is_active and self.is_admin
 
+    def save_head_image_url(self, file_url):
+        """
+        保存文件URL
+        :param file_url: 远程文件地址
+        """
+        self.head_image = file_url
+        self.save()
+
+    def save_head_image(self, filename):
+        """
+        保存文件名
+        :param filename: 文件名
+        """
+        self.head_image = filename
+        self.save()
+
 
 class Address(db.Document):
     """收货地址模型"""
 
     meta = {
-        'collection':'address'
+        'collection': 'address'
     }
     # 收货人
     consignee = db.StringField(max_length=15, required=True, min_length=1)
@@ -141,7 +160,3 @@ class Address(db.Document):
 
     # 用户, 引用User文档, 一对多,一个用户多个地址
     user = db.ListField(db.ReferenceField(User, reverse_delete_rule=db.CASCADE))
-
-
-
-

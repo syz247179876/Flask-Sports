@@ -21,6 +21,7 @@ from application.utils.success_code import response_code
 class IntegralEMallApi(Resource):
     """积分商城API"""
 
+
     commodity_fields = {
         'name': fields.String,
         'integral': fields.Integer,

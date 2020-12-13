@@ -14,8 +14,8 @@ def api_permission_check(func):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        user = getattr(g, 'user')
-        if user.check_permission():
+        user = getattr(g, 'user', None)
+        if user and user.check_permission():
             return func(*args, **kwargs)
         raise ApiPermissionError()
     return wrapper

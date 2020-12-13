@@ -11,16 +11,19 @@
 from bson import ObjectId
 from flask import current_app, g
 from flask_restful import Resource, fields, marshal_with, reqparse
-
+from werkzeug.datastructures import FileStorage
 from application.api.Client.user import authenticate_jwt
 from application.utils.api_permission import api_permission_check
 from application.utils.exception import ModifyInformationError
 from application.utils.fields import username_string
 from application.utils.success_code import response_code
+from extensions.oss import oss
 
 
 class InformationApi(Resource):
-    method_decorators = [authenticate_jwt, api_permission_check]  # 认证
+    method_decorators = [api_permission_check, authenticate_jwt]  # 认证
+
+    folder = 'head_image'
 
     # 过滤字段
     resource_fields = {
@@ -65,6 +68,14 @@ class InformationApi(Resource):
 
     def put(self):
         """修改头像"""
+        user = getattr(g, 'user' ,None)
         parser = reqparse.RequestParser(bundle_errors=True)
-        parser.add_argument('head_image', type)
-        # TODO: 对接oss实现头像上传
+        parser.add_argument('head_image', type=FileStorage, help='文件格式不正确', location='files')
+        args = parser.parse_args()
+        outer_net = oss.upload_file(args.get('head_image'), args.get(self.folder))
+        user.save_head_image_url(file_url=outer_net)
+        return response_code.modify_head_image_success
+
+
+
+

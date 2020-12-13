@@ -25,7 +25,7 @@ class Commodity(Document):
     image = URLField(required=True)
 
     # 商品状态,上架/下架
-    status = BooleanField(required=True)
+    status = BooleanField(required=True, default=True)
 
     @queryset_manager    # 返回QuerySetManager对象
     def live_commodity(doc_cls, queryset):

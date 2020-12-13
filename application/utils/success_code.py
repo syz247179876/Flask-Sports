@@ -90,6 +90,9 @@ MODIFY_INFORMATION_SUCCESS = 2024
 # 兑换商品成功
 EXCHANGE_SUCCESS = 2025
 
+# 修改头像成功
+MODIFY_HEAD_IMAGE_SUCCESS = 2026
+
 # 认证真实用户成功
 VERIFY_ID_CARD_SUCCESS = 15
 
@@ -237,10 +240,6 @@ CREATE_SHOPPER_SUCCESS = 691
 # 删除评论成功
 
 DELETE_REMARK_SUCCESS = 681
-
-# 修改头像成功
-
-MODIFY_HEAD_IMAGE_SUCCESS = 721
 
 # 评论点赞/差评成功
 
@@ -657,7 +656,7 @@ class ResponseCode:
     @property
     def modify_head_image_success(self):
         """修改头像成功"""
-        self.result.update(dict(code=MODIFY_HEAD_IMAGE_SUCCESS, msg='modify_success', status='success'))
+        self.result.update(dict(code=MODIFY_HEAD_IMAGE_SUCCESS, msg='修改头像', status='success'))
         return self.result
 
     @property
