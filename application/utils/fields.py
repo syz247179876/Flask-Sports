@@ -25,6 +25,13 @@ def identify_code_string(value):
         raise ValueError('验证码格式不正确')
     return value
 
+def get_params_int(value):
+    """GET请求时 ,int类型参数校验错误"""
+    value = int(value)
+    if not isinstance(value, int) or value > 9999999 or value < 1:
+        raise ValueError('请求的参数不规范')
+    return value
+
 def username_string(value):
     """用户名输入类型"""
     if len(value) > 20 or len(value) < 1:

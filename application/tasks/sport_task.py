@@ -37,14 +37,13 @@ def timer_rewrite_step_number(mold):
     """
     定时从redis写回mongodb
     """
+
     with manager_redis_operation() as manager:
-        result_dict = manager.rewrite_data_to_mongo(mole=mold, redis_name=CACHE_NAME)
+        result_dict = manager.rewrite_data_to_mongo(mold=mold, redis_name=CACHE_NAME)
         for member, value in result_dict.items():
             if not isinstance(member, str) or not isinstance(value, int):
-                member = str(member)
+                member = str(member.decode())  # 解码--->str--->_id
                 value = int(value)
-            print(member)
-            print(value)
             try:
                 user = User.objects(id=ObjectId(member)).first() # 获取user对象
                 step = {
@@ -57,7 +56,6 @@ def timer_rewrite_step_number(mold):
             except Exception as e:
                 # TODO:日志记录/邮件通知
                 print(e)
-
         print('同步成功')
 
 

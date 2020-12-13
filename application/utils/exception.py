@@ -107,6 +107,12 @@ TOKEN_DECODE_ERROR = 1017
 MONGODB_VALIDATION_ERROR = 1018
 # 用户已经存在
 USER_EXISTED_ERROR = 1019
+# 用户积分不足
+INTEGRAL_INSUFFICIENT_ERROR = 1020
+# 通用校验异常错误
+DATA_UNIVERSAL_EXCEPTION = 1021
+# API权限校验异常
+API_PERMISSION_EXCEPTION = 1022
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -204,6 +210,7 @@ class VerificationCodeException(ApiException):
 
 
 class AuthenticationError(ApiException):
+    """认证异常"""
     code = HTTP_401_UNAUTHORIZED
     error_code = AUTHENTICATION_ERROR
     description = 'User Authentication error'
@@ -213,6 +220,7 @@ class AuthenticationError(ApiException):
 
 
 class PasswordMissingError(ApiException):
+    """缺失密码异常"""
     code = HTTP_400_BAD_REQUEST
     error_code = PASSWORD_MISSING_ERROR
     description = 'Password must be required'
@@ -222,6 +230,7 @@ class PasswordMissingError(ApiException):
 
 
 class CodeMissingError(ApiException):
+    """缺失验证码异常"""
     code = HTTP_400_BAD_REQUEST
     error_code = CODE_MISSING_ERROR
     description = 'Code must be required'
@@ -231,6 +240,7 @@ class CodeMissingError(ApiException):
 
 
 class ModifyInformationError(ApiException):
+    """修改信息异常"""
     code = HTTP_500_INTERNAL_SERVER_ERROR
     error_code = MODIFY_INFORMATION_ERROR
     description = 'modify information error'
@@ -240,6 +250,7 @@ class ModifyInformationError(ApiException):
 
 
 class SessionUserInformationException(ApiException):
+    """Session 存储异常"""
     code = HTTP_500_INTERNAL_SERVER_ERROR
     error_code = SESSION_INFORMATION_ERROR
     description = 'User information seem to exist exception'
@@ -249,6 +260,7 @@ class SessionUserInformationException(ApiException):
 
 
 class ServerErrors(ApiException):
+    """服务器错误"""
     code = HTTP_500_INTERNAL_SERVER_ERROR
     error_code = SERVER_ERROR
     description = 'Server may be leave a little time'
@@ -257,6 +269,7 @@ class ServerErrors(ApiException):
         super().__init__(self.code, self.error_code, self.description)
 
 class PasswordError(ApiException):
+    """密码或手机号异常"""
     code = HTTP_400_BAD_REQUEST
     error_code = PASSWORD_ERROR
     description = 'password or phone error'
@@ -265,6 +278,7 @@ class PasswordError(ApiException):
         super().__init__(self.code, self.error_code, self.description)
 
 class CodeError(ApiException):
+    """验证码异常"""
     code = HTTP_400_BAD_REQUEST
     error_code = CODE_ERROR
     description = 'code error'
@@ -315,6 +329,35 @@ class UserExistedError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+class IntegralInsufficientError(ApiException):
+    """积分值不够错误"""
+
+    code = HTTP_500_INTERNAL_SERVER_ERROR
+    error_code = INTEGRAL_INSUFFICIENT_ERROR
+    description = 'The integral of user is insufficient'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class DataUniversalException(ApiException):
+    """通用数据校验异常"""
+
+    code = HTTP_400_BAD_REQUEST
+    error_code = DATA_UNIVERSAL_EXCEPTION
+    description = 'Data verification is abnormal'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
+
+class ApiPermissionError(ApiException):
+    """Api权限异常"""
+
+    code = HTTP_403_FORBIDDEN
+    error_code = API_PERMISSION_EXCEPTION
+    description = 'API Permission verification failed'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
 
 class ImproperlyConfigured(Exception):
     """Flask is somehow improperly configured"""

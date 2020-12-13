@@ -8,7 +8,9 @@ import datetime
 from extensions.database import db
 from extensions.hasher import make_password, check_password
 
-# 使用flask_mongoengine, 继承mongoengine
+from mongoengine import *
+
+# 使用flask_mongoengine, 扩充mongoengine,提供与flask的结合管理
 class User(db.Document):
     """用户模型"""
 
@@ -32,24 +34,33 @@ class User(db.Document):
     integral = db.IntField(default=0)
     # 头像
     head_image = db.URLField(required=False, default='https://flask-sports.oss-cn-beijing.aliyuncs.com/1579793244834816.jpg')
-
+    # 账户是否可用
     is_active = db.BooleanField(default=True)
-
+    # 是否具备管理员权限
     is_admin = db.BooleanField(default=False)
-
+    # 上次登录时间
     last_login = db.DateTimeField(required=True, default=datetime.datetime.now())
-
+    # 注册时间
     register_time = db.DateTimeField(default=datetime.datetime.now())
+    # 兴趣关键词组
+    appetition = db.ListField(StringField(max_length=5, required=False))
 
     USERNAME_FIELD = 'username'
 
     PHONE_FILED = 'phone'
 
+    def __str__(self):
+        return self.get_username()
+
+    def __repr__(self):
+        return f'用户:<{self.get_username()}>'
+
     def set_username(self, param):
         self.username = param
 
-    def __str__(self):
-        return self.get_username()
+    def get_appetition(self):
+        """获取用户兴趣"""
+        return self.appetition
 
     def get_identity(self):
         """用户唯一标识"""
@@ -100,6 +111,14 @@ class User(db.Document):
         if not checked:
             return False
         return True
+
+    def check_permission(self):
+        """检查基本权限"""
+        return self.is_active
+
+    def check_superuser_permission(self):
+        """检查是否具备管理员的权限"""
+        return self.is_active and self.is_admin
 
 
 class Address(db.Document):

@@ -14,7 +14,7 @@ class BaseRedis:
     _redis_instances = {}
 
     def __init__(self, db, redis):
-        self.db = db  # 选择配置中哪一种的数据库
+        self.db = db      # 选择配置中哪一种的数据库
         self.__redis = redis
 
     @classmethod
@@ -75,11 +75,28 @@ class BaseRedis:
         """获取当前操作类(BaseRedis)的实例"""
         return cls._instance[cls.__name__]
 
-    @staticmethod
-    def record_ip(ip, redis_name='default'):
-        """记录IP"""
+    def record_ip(self, ip, path, redis_name='default'):
+        """
+        记录IP
+        键:ip
+        值:path
+
+        限流思想:
+        1.采用Hash+List进行存储,一个用户一个Hash
+        2.先检查当前key下用户的列表中是否超出限流长度,如果没有,执行第3步;否则执行第4步
+        3.将path追加到list末尾
+        4.清除list中已经不再被限流的path,
+
+
+        数据结构: List + Hash
+        """
         with manager_redis(redis_name) as redis:
-            redis.hset(name='ip_record', key=ip, value=datetime.datetime.now().strftime('%Y-%m-%d'))
+            # redis.hset(name='ip_record', key=ip, value=datetime.datetime.now().strftime('%Y-%m-%d'))
+
+            #
+            key = self.key(ip)
+            redis.rpush(key, path)
+
 
     @staticmethod
     def key(*args):
@@ -94,7 +111,8 @@ class BaseRedis:
     @staticmethod
     def check_code(key, value, redis_name='default'):
         """
-        检查value是否和redis中key映射的value对应？
+        检查value是否和redis中key映射的value对应
+
         :param redis_name: redis name in config
         :param key: key in key
         :param value: value from outside
@@ -113,6 +131,7 @@ class BaseRedis:
     def save_code(key, code, time, redis_name='default'):
         """
         缓存验证码并存活 time（s）
+
         :param redis_name: redis name in config
         :param key: key of redis
         :param code: code from outside
@@ -131,6 +150,7 @@ class BaseRedis:
         获取某个键的剩余过期时间
         键永久：-1
         键不存在：-2
+
         :param redis_name: redis name in config
         :param key: key of redis
         :return: int
@@ -143,9 +163,11 @@ class BaseRedis:
     @staticmethod
     def get_token_exp(identity, redis_name='default'):
         """
+        获取token最终失效时间
+
         :param redis_name: redis name in config
         :param identity:用户id
-        获取token最终失效时间
+
         数据结构:hash
         """
 
@@ -168,10 +190,12 @@ class BaseRedis:
     def get_sport_value(self, member, date, mold, redis_name='default'):
         """
         根据name和date获取hash中的用户某一天的步数
+
         :param redis_name: redis name in config
         :param mold: 运动类型
         :param member: user.id
         :param date: datetime(string mold)
+
         键:mold-date
         值:{member:value}
 
@@ -186,11 +210,13 @@ class BaseRedis:
     def set_sport_value(self, member, date, value, mold, redis_name='default'):
         """
         根据mold和date以及value记录用户某天的运动值
+
         :param redis_name: redis name in config
         :param mold: 运动类型
         :param value: 运动值
         :param member: user.id
         :param date: datetime(string mold)
+
         键:mold-date
         值:{member:value}
 
@@ -208,6 +234,7 @@ class BaseRedis:
     def update_whole_rank(self, member, date, value, mold, redis_name='default'):
         """
         用户步数更新时,同步所有人排行榜的运动值
+
         键:-mold-date
         值:{member:port}
 
@@ -221,6 +248,7 @@ class BaseRedis:
     def retrieve_step_list(self, member, mold, day=None, redis_name=None):
         """
         默认获取指定用户过去一周的运动情况
+
         键:mold-member
 
         数据结构:hash
@@ -237,11 +265,12 @@ class BaseRedis:
 
     def retrieve_cur_rank(self, mold, today=None, redis_name='default'):
         """
-        当天计数
-        获取排名列表前100名,从高到低
+        当天计数,获取排名列表前100名,从高到低
+
         :param redis_name: redis name in config
         :param mold:运动项目类型
         :param today:当天日期
+
         键:'rank'-mold-date
 
         数据结构:sorted set
@@ -254,14 +283,15 @@ class BaseRedis:
 
     def retrieve_cur_rank_user(self, member, mold, today=None, redis_name='default'):
         """
-        当天计数
-        获取当前用户在全服运动榜中的排名和运动值,从大到小
+        当天计数,获取当前用户在全服运动榜中的排名和运动值,从大到小
+
         :param redis_name: redis name in config
         :param mold:运动项目类型
         :param today:当天日期
         :param member: 用户id
-        键:'rank'-mold-date
         :return [rank ,score]
+
+        键:'rank'-mold-date
 
         数据结构:sorted set
         """
@@ -290,6 +320,7 @@ class BaseRedis:
     def rewrite_data_to_mongo(self, mold, date=None, redis_name='default'):
         """
         将以时间为轴的所有用户当天数据写回mongodb
+
         :return {member:value}
         """
         today = date or (datetime.datetime.now() - datetime.timedelta(1)).strftime('%Y-%m-%d')

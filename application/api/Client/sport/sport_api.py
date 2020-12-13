@@ -10,8 +10,9 @@ from bson import ObjectId
 from flask import g, current_app
 from flask_restful import Resource, fields, marshal_with, reqparse
 
-from application.api.auth import authenticate_jwt
+from application.api.Client.user import authenticate_jwt
 from application.models.sport_model import StepSport
+from application.utils.api_permission import api_permission_check
 from extensions.redis import manager_redis_operation
 
 
@@ -20,7 +21,7 @@ class RankApi(Resource):
 
     CACHE_NAME = 'whole'
 
-    method_decorators = [authenticate_jwt]
+    method_decorators = [authenticate_jwt, api_permission_check]
 
     others_fields = {
         'username': fields.String,
@@ -79,7 +80,7 @@ class CounterApi(Resource):
     CACHE_NAME = 'user'
     CACHE_NAME_ANOTHER = 'whole'
 
-    method_decorators = [authenticate_jwt]
+    method_decorators = [authenticate_jwt, api_permission_check]
 
     resource_fields = {
         'username': fields.String,
@@ -118,7 +119,7 @@ class CounterApi(Resource):
 
 class ListCounterApi(Resource):
     """获取用户前7天的运动步数数据"""
-    method_decorators = [authenticate_jwt]
+    method_decorators = [authenticate_jwt, api_permission_check]
 
     sports_fields = {
         'step': fields.Integer,

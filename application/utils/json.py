@@ -22,8 +22,8 @@ def output_json(data, code, headers=None):
     # reasonable value here.  Note that this won't override any existing value
     # that was set.  We also set the "sort_keys" value.
 
-    if 'message' not in data:
-        data.update({'message':'If you have problems, please hesitate to contact me at 247179876@qq.com or blog: https://syzzjw.cn'})
+    if 'tip' not in data:
+        data.update({'tip':'If you have problems, please hesitate to contact me at 247179876@qq.com or blog: https://syzzjw.cn'})
     if current_app.debug:
         settings.setdefault('indent', 4)
         settings.setdefault('sort_keys', not PY3)
