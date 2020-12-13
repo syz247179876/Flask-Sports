@@ -7,7 +7,6 @@ import logging
 import os
 
 from celery.schedules import crontab
-from flask import current_app
 
 from configs.default import DefaultConfig
 
@@ -150,9 +149,9 @@ class DevelopmentConfig(DefaultConfig):
 
     # OSS对象存储
 
-    OSS_ENDPOINT = 'http://oss-cn-shanghai.aliyuncs.com'
+    OSS_ENDPOINT = 'http://oss-cn-beijing.aliyuncs.com'
 
-    OSS_BUCKET_NAME = 'flask-sport'
+    OSS_BUCKET_NAME = 'flask-sports'
 
     OSS_BASE_URL = 'https://flask-sports.oss-cn-beijing.aliyuncs.com/'
 

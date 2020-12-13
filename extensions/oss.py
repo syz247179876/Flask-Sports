@@ -6,6 +6,7 @@
 import os
 
 import oss2
+from oss2.exceptions import NoSuchBucket, InvalidArgument
 
 from application.utils.exception import UploadFileOSSError, DeleteFileOSSError
 
@@ -74,10 +75,14 @@ class OSS(object):
 
         if is_existed:  # 文件已经存在
             raise UploadFileOSSError()
-        result = self.bucket.put_object(related_path, file)
-        if result.status == 200:
-            return outer_net
-        raise UploadFileOSSError()
+        try:
+            result = self.bucket.put_object(related_path, self.get_buffer(file))
+            if result.status == 200:
+                return outer_net
+        except NoSuchBucket:
+            raise UploadFileOSSError()
+        except InvalidArgument:
+            raise UploadFileOSSError()
 
     def delete_file(self, file, folder=None):
         """
@@ -111,6 +116,8 @@ class OSS(object):
         :return:
         """
         folder = folder if folder else ''
+        print(filename)
+        print(folder)
         return os.path.join(folder, filename.replace('\\', '/'))
 
     @staticmethod
@@ -121,5 +128,15 @@ class OSS(object):
         :return: 文件名
         """
         return file.filename
+
+    @staticmethod
+    def get_buffer(file):
+        """
+        获取文件二进制内容
+        :param file:FileStorage文件对象
+        :return: buffer
+        """
+        return file.stream.read()
+
 
 oss = OSS()

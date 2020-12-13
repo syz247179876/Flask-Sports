@@ -395,6 +395,8 @@ class DeleteFileOSSError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
+
 class ImproperlyConfigured(Exception):
     """Flask is somehow improperly configured"""
     pass

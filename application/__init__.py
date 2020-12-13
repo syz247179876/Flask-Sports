@@ -29,9 +29,7 @@ CONFIGS = {
 
 def log_exception(sender, exception, **extra):
     """ 记录请求的异常"""
-    sender.logger.debug('Got exception during processing: %s', exception)
-
-
+    sender.logger.error('Got exception during processing: %s', exception)
 
 def create_app():
     """create flask-sports app"""

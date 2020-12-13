@@ -23,7 +23,7 @@ from extensions.oss import oss
 class InformationApi(Resource):
     method_decorators = [api_permission_check, authenticate_jwt]  # 认证
 
-    folder = 'head_image'
+    folder = 'HeadImage'
 
     # 过滤字段
     resource_fields = {
@@ -70,9 +70,9 @@ class InformationApi(Resource):
         """修改头像"""
         user = getattr(g, 'user' ,None)
         parser = reqparse.RequestParser(bundle_errors=True)
-        parser.add_argument('head_image', type=FileStorage, help='文件格式不正确', location='files')
+        parser.add_argument('head_image', type=FileStorage, help='文件格式不正确', location='files', required=True)
         args = parser.parse_args()
-        outer_net = oss.upload_file(args.get('head_image'), args.get(self.folder))
+        outer_net = oss.upload_file(args.get('head_image'), self.folder)
         user.save_head_image_url(file_url=outer_net)
         return response_code.modify_head_image_success
 
