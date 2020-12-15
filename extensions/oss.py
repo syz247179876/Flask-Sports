@@ -8,7 +8,7 @@ import os
 import oss2
 from oss2.exceptions import NoSuchBucket, InvalidArgument
 
-from application.utils.exception import UploadFileOSSError, DeleteFileOSSError
+from application.utils.exception import UploadFileOSSError, DeleteFileOSSError, FileExistedException
 
 
 class OSS(object):
@@ -73,8 +73,8 @@ class OSS(object):
         outer_net = self.outer_net(related_path)
         is_existed = self.bucket.object_exists(related_path)
 
-        if is_existed:  # 文件已经存在
-            raise UploadFileOSSError()
+        if is_existed:  # 文件已经存在, 可以无需此功能
+            raise FileExistedException()
         try:
             result = self.bucket.put_object(related_path, self.get_buffer(file))
             if result.status == 200:
@@ -116,8 +116,6 @@ class OSS(object):
         :return:
         """
         folder = folder if folder else ''
-        print(filename)
-        print(folder)
         return os.path.join(folder, filename.replace('\\', '/'))
 
     @staticmethod

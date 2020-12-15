@@ -93,6 +93,9 @@ EXCHANGE_SUCCESS = 2025
 # 修改头像成功
 MODIFY_HEAD_IMAGE_SUCCESS = 2026
 
+# 增加商品
+ADD_COMMODITY_SUCCESS = 2027
+
 # 认证真实用户成功
 VERIFY_ID_CARD_SUCCESS = 15
 
@@ -672,6 +675,11 @@ class ResponseCode:
     @property
     def exchange_success(self):
         self.result.update(dict(code=EXCHANGE_SUCCESS, msg='兑换商品成功', status='success'))
+        return self.result
+
+    @property
+    def add_commodity_success(self):
+        self.result.update(dict(code=ADD_COMMODITY_SUCCESS, msg='增加商品成功', status='success'))
         return self.result
 
 response_code = ResponseCode()
