@@ -10,9 +10,10 @@ from application.urls.integral_url import integral
 from application.urls.manager.integral_manage_url import integral_manager
 from application.urls.sport_url import sport
 from application.urls.user_urls import user
-from application.signals.handle_signal import signal
+from application.signals.default_handle import signal
+from extensions.celery_app import celery_app
 from extensions.database import db
-from extensions.extensions import celery_app, redis_app, sms
+from extensions.extensions import redis_app, sms
 from configs import load_config
 from flask import got_request_exception
 

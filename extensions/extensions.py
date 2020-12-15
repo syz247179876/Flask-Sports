@@ -9,8 +9,6 @@ from extensions.redis import BaseRedis
 from extensions.sms import sms
 
 
-celery_app = PyCelery() # celery application
-
 redis_app = BaseRedis   # redis application
 
 sms = sms               # sms service
