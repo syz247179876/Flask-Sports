@@ -9,7 +9,7 @@ import re
 
 def phone_string(value):
     """手机号输入类型"""
-    if len(value) != 11 or re.match(r'13[0-9]{9}|15[0-9]{9}', value) is None:
+    if len(value) != 11 or re.match(r'1[0-9][0-9]{9}|15[0-9]{9}', value) is None:
         raise ValueError('手机号格式不合法')
     return value
 
@@ -36,6 +36,26 @@ def username_string(value):
     """用户名输入类型"""
     if len(value) > 20 or len(value) < 1:
         raise ValueError('用户名格式不正确')
+    return value
+
+def commodity_string(value):
+    """商品名输入类型"""
+    if len(value) > 50:
+        raise ValueError('商品名格式不正确')
+    return value
+
+def integral_int(value):
+    """积分值输入类型"""
+    value = int(value)
+    if value > 999999:
+        raise ValueError('积分值异常')
+    return value
+
+def stock_int(value):
+    """库存量输入类型"""
+    value = int(value)
+    if value > 999999:
+        raise ValueError('库存量异常')
     return value
 
 class PhoneString(fields.Raw):
