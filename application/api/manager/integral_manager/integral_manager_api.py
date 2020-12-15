@@ -24,14 +24,14 @@ class IntegralManagerApi(Resource):
         parser.add_argument('name', type=commodity_string, help="商品名格式不规范", required=True)
         parser.add_argument('integral', type=integral_int, help="积分值格式不规范", required=True)
         parser.add_argument('stock', type=stock_int, help="库存数据格式不规范", required=True)
-        parser.add_argument('image', type=FileStorage, location='files', help="文件格式不规范", required=True) # 从请求体的files中拿数据
-
+        parser.add_argument('image', type=FileStorage, location='files', help="文件格式不规范",
+                            required=True)  # 从请求体的files中拿数据
         args = parser.parse_args()
         outer_net = oss.upload_file(args.get('image'), 'IntegralCommdity')  # 上传文件到oss
-        args.update({'image':outer_net})
+        args.update({'image': outer_net})
         commodity = Commodity(**args)
         commodity.save()
-        return response_code.add_commodify_success
+        return response_code.add_commodity_success
 
     def delete(self):
         """删除商品"""

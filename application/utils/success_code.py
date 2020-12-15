@@ -678,7 +678,8 @@ class ResponseCode:
         return self.result
 
     @property
-    def add_commodify_success(self):
+    def add_commodity_success(self):
         self.result.update(dict(code=ADD_COMMODITY_SUCCESS, msg='增加商品成功', status='success'))
+        return self.result
 
 response_code = ResponseCode()
