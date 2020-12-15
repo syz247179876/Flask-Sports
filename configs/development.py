@@ -124,6 +124,11 @@ class DevelopmentConfig(DefaultConfig):
 
     CELERY_TASK_NAME = 'sport-tasks'
 
+    CELERY_TASKS_FUNC = [
+        'application.tasks.sport_task.timer_rewrite_step_number',
+        'application.tasks.user_task.send_phone',
+    ]
+
     # 异步任务
     CELERY_BEAT_SCHEDULE = {
         'rewrite_step_counter': {
@@ -134,8 +139,8 @@ class DevelopmentConfig(DefaultConfig):
     }
 
     # 阿里云短信参数
-    ACCESS_KEY_ID = ''
-    ACCESS_KEY_SECRET = ''
+    ACCESS_KEY_ID = 'LTAI4G7NfR25LtE2AKeg8zKt'
+    ACCESS_KEY_SECRET = 'BtSykYzGdTQAVdTRlO2v7WyKxacvb2'
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
 
