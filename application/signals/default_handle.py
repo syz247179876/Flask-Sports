@@ -140,8 +140,9 @@ def parse_jwt(sender, **kwargs):
             # 在解析payload过程中突然过期,重新生成
             # token到期异常,判断refresh_jwt是否还在有效期
             # TODO: 突然过期,PyJwt抛出签证过期异常,拿不到payload,这里需要处理以下
-            token = again_token(payload, id)
-            req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
+            # token = again_token(payload, id)
+            # req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
+            raise ServerTokenExpire()
         except DecodeError:
             # token错误
             raise TokenDecodeError()
@@ -155,16 +156,14 @@ def append_jwt(sender, response):
     3.编码,写回response.__dict__
     """
     req = request
-    print(response.__dict__)
     try:
         # 刷新重新写回token到Response的情况
         if getattr(req, 'token', None):
-            print(req['token'])
-            response_str = response.__dict__.get[0].decode()
+            response_str = response.__dict__.get('response').decode()
             response_dict = json.loads(response_str)
             response_dict.update({'token': getattr(req, 'token')})
             response_str = json.dumps(response_dict)
-            response.__dict__.get[0] = response_str.encode()
+            response.__dict__.update({'response':response_str.encode()})
     except TypeError:
         # 处理特殊Response对象属性的情况
         pass
@@ -195,6 +194,6 @@ class HandleSignal(object):
         self.register_signal(generate_token_signal, generate_token)  # 生成token
         self.register_signal(request_started, parse_jwt)  # 解析jwt,获取用户对象,立即登入
         self.register_signal(request_finished, append_jwt)  # 追加jwt
-        self.register_signal(request_started, rate)  # 限流
+        # self.register_signal(request_started, rate)  # 限流
 
 signal = HandleSignal()

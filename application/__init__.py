@@ -9,7 +9,7 @@ from application.models import get_user_model, register_all_model
 from application.urls.integral_url import integral
 from application.urls.manager.integral_manage_url import integral_manager
 from application.urls.sport_url import sport
-from application.urls.user_urls import user
+from application.urls.user_url import user
 from application.signals.default_handle import signal
 from extensions.celery_app import celery_app
 from extensions.database import db
@@ -17,8 +17,8 @@ from extensions.extensions import redis_app, sms
 from configs import load_config
 from flask import got_request_exception
 
+
 from extensions.oss import oss
-from extensions.swaggers import swagger
 from log import setup_log
 
 CONFIGS = {
@@ -62,7 +62,6 @@ def create_app():
     sms.init_app(app)          # 注册阿里云短信服务
     signal.init_app(app)       # 注册发送验证码信号
     db.init_app(app)           # 注册mongodb实例
-    swagger.init_app(app)      # 注册Swagger接口文档工具
     oss.init_app(app)          # 注册OSS服务
 
 
