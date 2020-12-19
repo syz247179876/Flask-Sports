@@ -6,6 +6,17 @@
 
 from flask_restful import fields
 import re
+CODE_CATEGORY = {
+    'register':'e5cbdca0-4210-11eb-b403-9822ef2f94f8',
+    'login':'f0548faa-4210-11eb-a54d-9822ef2f94f8',
+    'find-password':'fc3954fe-4210-11eb-bdb9-9822ef2f94f8',
+    'modify-password':'061805c4-4211-11eb-aa2b-9822ef2f94f8',
+}
+
+def code_category_string(value):
+    if value not in CODE_CATEGORY:
+        raise ValueError('业务类型不正确')
+    return value
 
 
 def phone_string(value):

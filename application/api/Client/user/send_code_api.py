@@ -9,7 +9,7 @@ import string
 from flask_restful import Resource, reqparse
 
 from application.utils.exception import UserExistedError
-from application.utils.fields import phone_string
+from application.utils.fields import phone_string, code_category_string
 from extensions.redis import manager_redis_operation
 from application.signals.signal import send_code_signal
 from application.utils.success_code import response_code
@@ -48,9 +48,16 @@ class SendCodeApi(Resource):
             manager.save_code(phone, code, 600, self.CACHE_NAME)
         return code
 
+    @staticmethod
+    def get_template_code(way):
+        """根据业务码获取配置文件属性"""
+        attribute = current_app.config.get(f'TEMPLATES_CODE_{way.upper()}')
+        return attribute
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('phone', type=phone_string, required=True, help='手机号格式不正确')
+        parser.add_argument('way', type=code_category_string, required=True, help='业务类型不正确')
         args = parser.parse_args()
         phone = args.get('phone')
 
@@ -63,6 +70,6 @@ class SendCodeApi(Resource):
         code = self.create_save_code(phone)
 
         send_code_signal.send(self, phone_numbers=phone,
-                              template_code=current_app.config.get('TEMPLATES_CODE_REGISTER'),
+                              template_code=self.get_template_code(args.get('way')),
                               template_param={'code': code})
         return response_code.send_code_success

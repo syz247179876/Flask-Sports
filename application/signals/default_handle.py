@@ -163,7 +163,7 @@ def append_jwt(sender, response):
             response_dict = json.loads(response_str)
             response_dict.update({'token': getattr(req, 'token')})
             response_str = json.dumps(response_dict)
-            response.__dict__.update({'response':response_str.encode()})
+            response.__dict__.update({'response': response_str.encode()})
     except TypeError:
         # 处理特殊Response对象属性的情况
         pass
@@ -184,16 +184,22 @@ def rate(sender, **kwargs):
 class HandleSignal(object):
     """处理发送验证码信号"""
 
-    def register_signal(self, signal, callback):
+    @staticmethod
+    def register_signal(signal, callback):
         """注册信号"""
         signal.connect(callback)
 
+    @staticmethod
+    def send_phone(phone_numbers, template_code, template_param):
+        send_phone.delay(phone_numbers, template_code, template_param)
+
     def init_app(self, app):
-        self.register_signal(send_code_signal, send_phone)  # 注册发送验证码信号
+        self.register_signal(send_code_signal, self.send_phone)  # 注册发送验证码信号
         self.register_signal(update_session_user_signal, update_session_user)  # 注册更新session用户信息信号
         self.register_signal(generate_token_signal, generate_token)  # 生成token
         self.register_signal(request_started, parse_jwt)  # 解析jwt,获取用户对象,立即登入
         self.register_signal(request_finished, append_jwt)  # 追加jwt
         # self.register_signal(request_started, rate)  # 限流
+
 
 signal = HandleSignal()

@@ -101,15 +101,27 @@ class FindPasswordApi(Resource):
         parser = reqparse.RequestParser(bundle_errors=True)
         parser.add_argument('phone', type=phone_string, help='手机号格式不正确', required=True)
         parser.add_argument('code', type=identify_code_string, help='验证码格式不正确', required=True)
+        parser.add_argument('X-FORWARD-FOR', type=ip_string, location='headers', dest='ip')
         return parser.parse_args()
+
+    def save_ident(self, phone, ip):
+        """
+        记录唯一凭证,用于确保在修改密码和验证码校验分为两个界面情况下,由同一个用户完成
+        :param phone: 手机号
+        """
+        with manager_redis_operation() as manager:
+            manager.save_ident(phone, ip, self.CACHE_NAME)
 
     def post(self):
         args = self.validate()
+        phone = args.get('phone')
         with manager_redis_operation() as manager:
-            is_correct = manager.check_code(args.get('phone'), args.get('code'))
+            is_correct = manager.check_code(phone, args.get('code'))
             if not is_correct:
                 raise CodeError()
-            return {}, 204 # 进入修改密码页
+            # 记录唯一凭证
+            self.save_ident(phone, args.get('ip'))
+            return {'status':'go on!'}, 204 # 进入修改密码页
 
 
 
@@ -119,7 +131,7 @@ class ModifyPasswordApi(Resource):
 
     二  针对找回密码后修改密码流程:
 
-    1.验证唯一凭证和密码是否和之前的密码一致
+    1.比较唯一凭证是否是之前的手机号用户(由redis记录)
     2.修改密码
     3.返回修改结果,删除唯一凭证
 
@@ -139,8 +151,8 @@ class ModifyPasswordApi(Resource):
         """
 
         parser = reqparse.RequestParser(bundle_errors=True)
-        parser.add_argument('X-FORDWARD-FOR', type=ip_string, location='headers', help='唯一身份格式不正确', required=True)
         parser.add_argument('new_password', type=password_string, help='密码格式不正确', required=True)
+        parser.add_argument('phone', type=phone_string, help='手机号格式不正确', required=True)
         return parser.parse_args()
 
 

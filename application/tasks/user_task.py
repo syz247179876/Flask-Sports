@@ -9,7 +9,7 @@ from extensions.sms import sms
 from flask import current_app
 
 
-def send_phone(sender, phone_numbers, template_code, template_param):
+def send_phone(phone_numbers, template_code, template_param):
     """发送手机验证码"""
     _business_id = uuid.uuid1()
     sms.send_sms(_business_id, phone_numbers=phone_numbers, sign_name=current_app.config.get('SIGN_NAME'),

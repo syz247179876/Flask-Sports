@@ -187,6 +187,16 @@ class BaseRedis:
         with manager_redis(redis_name) as redis:
             redis.hset(_copy.pop('id'), mapping=_copy)
 
+
+    def save_ident(self, phone, ip, redis_name='default'):
+        """
+        保存唯一身份凭证
+
+        数据结构:hash table
+        """
+        with manager_redis(redis_name) as redis:
+            redis.hset('identity', phone, ip)
+
     def get_sport_value(self, member, date, mold, redis_name='default'):
         """
         根据name和date获取hash中的用户某一天的步数
@@ -351,6 +361,6 @@ def manager_redis_operation(redis_class=BaseRedis):
         instance = redis_class.redis_operation_instance()
         yield instance
     except Exception as e:
-        print(2312)
         # TODO:redis宕机, 发送邮件到我邮箱
         print(e)
+
