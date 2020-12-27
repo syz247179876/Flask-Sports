@@ -34,6 +34,7 @@ class PyCelery(object):
 
         celery = Celery(name, broker=app.config['CELERY_BROKER_URL'])
         celery.config_from_object(config, namespace='CELERY')  # 指明配置前缀
+        # celery.autodiscover_tasks(['application.tasks'])       # 导入制定模块的任务
         # celery.autodiscover_tasks()
         app.config.update({'CELERY_INSTANCE': celery})
         self.configure_celery(app, celery)
@@ -46,7 +47,7 @@ class PyCelery(object):
         :return task func tuple
         """
         tasks_func = app.config.get('CELERY_TASKS_FUNC')
-        tasks_func_instance = (get_model(func) for func in tasks_func)
+        tasks_func_instance = [get_model(func) for func in tasks_func]
         return tasks_func_instance
 
     def register_task(self, app, celery):
@@ -56,10 +57,9 @@ class PyCelery(object):
         :param funcs: 所有任务函数
         :return: 任务dict
         """
-        task_dict = {}
-        tasks_tuple = self.scan_tasks(app)
-        task_dict = {task_dict.update({task.__name__: celery.task(task)}) for task in tasks_tuple}
-        return task_dict
+        tasks_list = self.scan_tasks(app)
+        tasks_dict = {task.__name__: celery.task(task) for task in tasks_list}
+        return tasks_dict
 
     def configure_celery(self, app, celery):
         """
@@ -68,7 +68,7 @@ class PyCelery(object):
         :param celery: celery instance
         """
         tasks = self.register_task(app, celery)
-        setattr(app, 'tasks', tasks)
+        setattr(app, 'TASKS', tasks)
 
 
 celery_app = PyCelery()  # celery application

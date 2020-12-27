@@ -15,13 +15,18 @@ from flask.globals import request
 from jwt.exceptions import ExpiredSignatureError, DecodeError
 
 from application.signals.signal import update_session_user_signal, generate_token_signal, send_code_signal
-from application.tasks.user_task import send_phone
 from application.tasks.sport_task import timer_rewrite_step_number
 from application.utils.exception import SessionUserInformationException, ServerTokenExpire, TokenDecodeError
 from extensions.redis import manager_redis_operation
 
 CACHE_NAME = 'code'
 
+
+def send_phone(sender, phone_numbers, template_code, template_param):
+    """发送验证码异步任务"""
+    func = getattr(current_app, 'TASKS')['send_phone']
+    sign_name = current_app.config.get('SIGN_NAME')
+    func.delay(phone_numbers, template_code, template_param, sign_name)
 
 def update_session_user(sender, **kwargs):
     """
@@ -189,12 +194,8 @@ class HandleSignal(object):
         """注册信号"""
         signal.connect(callback)
 
-    @staticmethod
-    def send_phone(phone_numbers, template_code, template_param):
-        send_phone.delay(phone_numbers, template_code, template_param)
-
     def init_app(self, app):
-        self.register_signal(send_code_signal, self.send_phone)  # 注册发送验证码信号
+        self.register_signal(send_code_signal, send_phone)  # 注册发送验证码信号
         self.register_signal(update_session_user_signal, update_session_user)  # 注册更新session用户信息信号
         self.register_signal(generate_token_signal, generate_token)  # 生成token
         self.register_signal(request_started, parse_jwt)  # 解析jwt,获取用户对象,立即登入
