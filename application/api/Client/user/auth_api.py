@@ -16,7 +16,7 @@ from application.utils.exception import VerificationCodeException, CodeMissingEr
 from application.utils.fields import phone_string, password_string, \
     identify_code_string
 from extensions.hasher import make_password
-from extensions.redis import manager_redis, manager_redis_operation
+from extensions.redis import manager_redis, manager_base_package
 from application.utils.success_code import response_code
 
 
@@ -75,7 +75,7 @@ class LoginApi(Resource):
         if not code:  # 丢失验证码
             raise CodeMissingError()
 
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             is_checked = manager.check_code(phone, code, self.CACHE_NAME)
 
             if not is_checked:  # code error

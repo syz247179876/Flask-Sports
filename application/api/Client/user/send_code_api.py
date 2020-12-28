@@ -10,7 +10,7 @@ from flask_restful import Resource, reqparse
 
 from application.utils.exception import UserExistedError
 from application.utils.fields import phone_string, code_category_string
-from extensions.redis import manager_redis_operation
+from extensions.redis import manager_base_package
 from application.signals.signal import send_code_signal
 from application.utils.success_code import response_code
 from flask import current_app
@@ -44,7 +44,7 @@ class SendCodeApi(Resource):
         """创建存储验证码"""
 
         code = get_verification_code()
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             manager.save_code(phone, code, 600, self.CACHE_NAME)
         return code
 

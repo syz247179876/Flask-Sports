@@ -5,21 +5,23 @@
 # @Software: Pycharm
 import contextlib
 import datetime
+import time
 
-from redis import Redis
+from flask import current_app
+from redis import Redis, RedisError
 
 
 class BaseRedis:
-    _instance = {}
+    _instance = {}  # 用于子类继承共用父类的类属性
     _redis_instances = {}
 
     def __init__(self, db, redis):
-        self.db = db      # 选择配置中哪一种的数据库
+        self.db = db  # 选择配置中哪一种的数据库
         self.__redis = redis
 
     @classmethod
     def init_app(cls, app):
-        return cls.load_config_redis(app)
+        return cls._load_config_redis(app)
 
     # @classmethod
     # def choice_redis_db(cls, app):
@@ -37,7 +39,7 @@ class BaseRedis:
     #     return cls._instance[cls.__name__]
 
     @classmethod
-    def load_config_redis(cls, app):
+    def _load_config_redis(cls, app):
         """
         加载配置中的缓存数据库
         单例模式，减小new实例的大量创建的次数，减少内存等资源的消耗（打开和关闭连接），共享同一个资源
@@ -61,10 +63,6 @@ class BaseRedis:
     def redis(self, value):
         self.__redis = value
 
-    def get_redis(self, redis_name):
-        """从redis实例群中获取制定的redis_name"""
-        return self._redis_instances[redis_name]
-
     @classmethod
     def redis_instance(cls, redis_name):
         """获取存放单例字典中的redis实例"""
@@ -74,29 +72,6 @@ class BaseRedis:
     def redis_operation_instance(cls):
         """获取当前操作类(BaseRedis)的实例"""
         return cls._instance[cls.__name__]
-
-    def record_ip(self, ip, path, redis_name='default'):
-        """
-        记录IP
-        键:ip
-        值:path
-
-        限流思想:
-        1.采用Hash+List进行存储,一个用户一个Hash
-        2.先检查当前key下用户的列表中是否超出限流长度,如果没有,执行第3步;否则执行第4步
-        3.将path追加到list末尾
-        4.清除list中已经不再被限流的path,
-
-
-        数据结构: List + Hash
-        """
-        with manager_redis(redis_name) as redis:
-            # redis.hset(name='ip_record', key=ip, value=datetime.datetime.now().strftime('%Y-%m-%d'))
-
-            #
-            key = self.key(ip)
-            redis.rpush(key, path)
-
 
     @staticmethod
     def key(*args):
@@ -186,7 +161,6 @@ class BaseRedis:
         _copy = kwargs.copy()
         with manager_redis(redis_name) as redis:
             redis.hset(_copy.pop('id'), mapping=_copy)
-
 
     def save_ident(self, phone, ip, redis_name='default'):
         """
@@ -340,27 +314,130 @@ class BaseRedis:
             return result_dict
 
 
+class SportRedis(BaseRedis):
+    """与运动相关redis业务处理"""
+    pass
+
+
+class RateRedis(BaseRedis):
+    """用户行为redis业务处理"""
+
+    db_name = 'rate'
+
+    @classmethod
+    def _choice_redis_db(cls, app):
+        """
+        选择配置中指定的数据库
+        单例模式，减小new实例的大量创建的次数，减少内存等资源的消耗（打开和关闭连接），共享同一个资源
+        """
+
+        if not cls._instance.setdefault(cls.__name__, None):
+            db = app.config.get('REDIS_DB')
+            if not cls._redis_instances[cls.db_name]:
+                cls._redis_instances[cls.db_name] = Redis(**db[cls.db_name], decode_responses=True)
+            cls._instance[cls.__name__] = cls(db, cls._redis_instances[cls.db_name])  # 自定义操作类实例
+        return cls._instance[cls.__name__]
+
+    def record_ip(self, ip, path, redis_name='default'):
+        """
+        记录IP
+        键:ip
+        值:path
+
+        限流思想:
+        1.采用Hash+List进行存储,一个用户一个Hash
+        2.先检查当前key下用户的列表中是否超出限流长度,如果没有,执行第3步;否则执行第4步
+        3.将path追加到list末尾
+        4.清除list中已经不再被限流的path,
+
+
+        数据结构: List + Hash
+        """
+        with manager_rate_redis() as redis:
+            redis.hset(name='ip_record', key=ip, value=datetime.datetime.now().strftime('%Y-%m-%d'))
+
+            key = self.key(ip)
+            redis.rpush(key, path)
+
+    def check_throttling(self, key, timer, duration, num_requests):
+        """
+        检查是否满足限流
+        使用deque替代list
+        """
+        from collections import deque
+
+        with manager_rate_redis() as redis:
+            history = redis.get(key, deque())
+            now = timer()
+
+            # 如果此时history中存在已经不满足限流的记录,则删去
+            while history and history[-1] <= now - duration:
+                history.pop()
+            if len(history) >= num_requests:
+                return False, None  # 次数仍然达到限流阀值
+            return True, history  # 可以访问
+
+    def record_throttle(self, key, history, duration):
+        """向name为key的history队列中添加当前的请求时间戳"""
+        history.appendleft(key, history)
+
+        with manager_rate_redis() as redis:
+            redis.set(self.key, history, duration)
+
+
 @contextlib.contextmanager
 def manager_redis(redis_name=None, redis_class=BaseRedis):
     redis = None
     redis_name = redis_name or 'default'
     try:
         redis = redis_class.redis_instance(redis_name)
-        yield redis                 # 如有异常,回退到此,抛出异常
-    except Exception as e:
-        # TODO:redis宕机, 发送邮件到我邮箱
-        print(2321)
-        print(e)
+        yield redis  # 如有异常,回退到此,抛出异常
+    except RedisError as e:
+        print(f'redis出现异常:{e}')
     finally:
         redis.close()  # 其实可以不要,除非single client connection, 每条执行执行完都会调用conn.release()
 
 
 @contextlib.contextmanager
-def manager_redis_operation(redis_class=BaseRedis):
+def manager_base_package(redis_class=BaseRedis):
     try:
         instance = redis_class.redis_operation_instance()
         yield instance
-    except Exception as e:
-        # TODO:redis宕机, 发送邮件到我邮箱
-        print(e)
+    except RedisError as e:
+        print(f'redis执行错误:{e}')
 
+
+@contextlib.contextmanager
+def manager_rate_redis():
+    redis_name = 'rate'
+    redis_class = RateRedis
+    redis = None
+    try:
+        redis = redis_class.redis_instance(redis_name)
+        yield redis
+    except RedisError as e:
+        print(f'redis出现异常:{e}')
+    finally:
+        redis.close()
+
+
+@contextlib.contextmanager
+def manager_rate_package():
+    redis_class = RateRedis
+    try:
+        instance = redis_class.redis_operation_instance()
+        yield instance
+    except RedisError as e:
+        print(f'redis执行错误:{e}')
+
+
+class DefaultCacheRedisProxy(object):
+    """
+    Proxy access to the default Cache(Redis) object's attributes
+    """
+
+    def __getattr__(self, name):
+        return BaseRedis.redis_instance(name)
+
+
+cache_redis = DefaultCacheRedisProxy()

@@ -18,7 +18,7 @@ from application.utils.exception import ModifyInformationError
 from application.utils.fields import username_string, phone_string, identify_code_string, ip_string, password_string
 from application.utils.success_code import response_code
 from extensions.oss import oss
-from extensions.redis import manager_redis_operation
+from extensions.redis import manager_base_package
 from application.utils.exception import CodeError
 
 
@@ -109,13 +109,13 @@ class FindPasswordApi(Resource):
         记录唯一凭证,用于确保在修改密码和验证码校验分为两个界面情况下,由同一个用户完成
         :param phone: 手机号
         """
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             manager.save_ident(phone, ip, self.CACHE_NAME)
 
     def post(self):
         args = self.validate()
         phone = args.get('phone')
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             is_correct = manager.check_code(phone, args.get('code'))
             if not is_correct:
                 raise CodeError()
@@ -158,6 +158,8 @@ class ModifyPasswordApi(Resource):
 
     def post(self):
         args = self.validate_retrieve_modify_password()
+        
+
 
 
 
