@@ -119,6 +119,8 @@ UPLOAD_FILE_OSS_ERROR = 1023
 FILE_EXISTED = 1024
 # 删除文件失败
 DELETE_FILE_ERROR = 1025
+# 请求被限流
+THROTTLE_EXCEPTION = 1026
 
 
 class ApiException(werkzeug.exceptions.HTTPException):
@@ -274,6 +276,7 @@ class ServerErrors(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class PasswordError(ApiException):
     """密码或手机号异常"""
     code = HTTP_400_BAD_REQUEST
@@ -283,6 +286,7 @@ class PasswordError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class CodeError(ApiException):
     """验证码异常"""
     code = HTTP_400_BAD_REQUEST
@@ -291,6 +295,7 @@ class CodeError(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
 
 class ServerTokenExpire(ApiException):
     """
@@ -304,6 +309,7 @@ class ServerTokenExpire(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class TokenDecodeError(ApiException):
     """
     Token校验错误
@@ -315,6 +321,7 @@ class TokenDecodeError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class MongodbValidationError(ApiException):
     """Mongodb校验错误"""
 
@@ -324,6 +331,7 @@ class MongodbValidationError(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
 
 class UserExistedError(ApiException):
     """用户已经存在"""
@@ -335,6 +343,7 @@ class UserExistedError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class IntegralInsufficientError(ApiException):
     """积分值不够错误"""
 
@@ -344,6 +353,7 @@ class IntegralInsufficientError(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
 
 class DataUniversalException(ApiException):
     """通用数据校验异常"""
@@ -355,6 +365,7 @@ class DataUniversalException(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class ApiPermissionError(ApiException):
     """Api权限异常"""
 
@@ -364,6 +375,7 @@ class ApiPermissionError(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
 
 class UploadFileOSSError(ApiException):
     """上传文件到OSS异常"""
@@ -375,6 +387,7 @@ class UploadFileOSSError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
 class FileExistedException(ApiException):
     """上传文件,但文件已经存在"""
 
@@ -384,6 +397,7 @@ class FileExistedException(ApiException):
 
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
+
 
 class DeleteFileOSSError(ApiException):
     """删除文件,但文件不存在"""
@@ -395,6 +409,15 @@ class DeleteFileOSSError(ApiException):
     def __init__(self):
         super().__init__(self.code, self.error_code, self.description)
 
+
+class ThrottleException(ApiException):
+    """429 限流"""
+    code = HTTP_429_TOO_MANY_REQUESTS
+    error_code = THROTTLE_EXCEPTION
+    description = 'request is throttled'
+
+    def __init__(self):
+        super().__init__(self.code, self.error_code, self.description)
 
 
 class ImproperlyConfigured(Exception):

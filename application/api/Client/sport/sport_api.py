@@ -13,7 +13,7 @@ from flask_restful import Resource, fields, marshal_with, reqparse
 from application.api.Client.user import authenticate_jwt
 from application.models.sport_model import StepSport
 from application.utils.api_permission import api_permission_check
-from extensions.redis import manager_redis_operation
+from extensions.redis import manager_base_package
 
 
 class RankApi(Resource):
@@ -43,7 +43,7 @@ class RankApi(Resource):
         """获取当天运动排名API"""
         user = getattr(g, 'user')
 
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             individual_rank = manager.retrieve_cur_rank_user(user.id, mold='step', redis_name=self.CACHE_NAME)
             whole_rank = manager.retrieve_cur_rank('step',redis_name=self.CACHE_NAME)
 
@@ -95,7 +95,7 @@ class CounterApi(Resource):
     def get(self):
         """显示用户步数"""
         user = getattr(g, 'user')  # 获取用户对象
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             step = manager.get_sport_value(str(user.id), datetime.datetime.now().strftime('%Y-%m-%d'), mold='step',
                                            redis_name=self.CACHE_NAME)
             step = step if step else 0
@@ -110,7 +110,7 @@ class CounterApi(Resource):
         args = parser.parse_args()
         user = getattr(g, 'user')
         today = datetime.datetime.now().strftime('%Y-%m-%d')
-        with manager_redis_operation() as manager:
+        with manager_base_package() as manager:
             # 设置用户步数,并更新全服运动值榜
             manager.set_sport_value(user.id, today, args.get('step'), 'step', self.CACHE_NAME)
             manager.update_whole_rank(user.id, today, args.get('step'), 'step', self.CACHE_NAME_ANOTHER)

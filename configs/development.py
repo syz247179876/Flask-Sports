@@ -86,7 +86,7 @@ class DevelopmentConfig(DefaultConfig):
                 'password': '',
                 'db': 4
             },
-        'redis4':
+        'rate':
             {
                 'host': '0.0.0.0',
                 'port': 6381,
@@ -139,8 +139,8 @@ class DevelopmentConfig(DefaultConfig):
     }
 
     # 阿里云短信参数
-    ACCESS_KEY_ID = 'LTAI4G7NfR25LtE2AKeg8zKt'
-    ACCESS_KEY_SECRET = 'BtSykYzGdTQAVdTRlO2v7WyKxacvb2'
+    ACCESS_KEY_ID = ''
+    ACCESS_KEY_SECRET = ''
     REGION = 'cn-hangzhou'
     SIGN_NAME = 'ACC商城'  # 短信签名
 
@@ -179,6 +179,14 @@ class DevelopmentConfig(DefaultConfig):
         'title': '健康运动APP Api',
         'description': '基于Flask后端的 健康运动APP OpenApi接口',
         'host': '0.0.0.0' # 请求域名
+    }
+
+    DEFAULT_THROTTLE_CLASSES = [
+        'application.utils.throttle.WholeApiRate',
+    ]
+
+    DEFAULT_THROTTLE_RATE = {
+        'whole-api':'100/day'
     }
 
 

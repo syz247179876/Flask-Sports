@@ -8,6 +8,7 @@
 import datetime
 import json
 import time
+
 import jwt
 from bson import ObjectId
 from flask import session, current_app, request_started, request_finished, g
@@ -15,12 +16,17 @@ from flask.globals import request
 from jwt.exceptions import ExpiredSignatureError, DecodeError
 
 from application.signals.signal import update_session_user_signal, generate_token_signal, send_code_signal
-from application.tasks.user_task import send_phone
-from application.tasks.sport_task import timer_rewrite_step_number
 from application.utils.exception import SessionUserInformationException, ServerTokenExpire, TokenDecodeError
-from extensions.redis import manager_redis_operation
+from extensions.redis import manager_base_package, manager_rate_package
 
 CACHE_NAME = 'code'
+
+
+def send_phone(sender, phone_numbers, template_code, template_param):
+    """发送验证码异步任务"""
+    func = getattr(current_app, 'TASKS')['send_phone']
+    sign_name = current_app.config.get('SIGN_NAME')
+    func.delay(phone_numbers, template_code, template_param, sign_name)
 
 
 def update_session_user(sender, **kwargs):
@@ -75,28 +81,16 @@ def generate_token(sender, **kwargs):
     token = jwt.encode(kwargs, secret, algorithm='HS256')
 
     # 存入redis,便于根据最终过期刷新token
-    with manager_redis_operation() as manager:
+    with manager_base_package() as manager:
         manager.save_token_kwargs(CACHE_NAME, id=kwargs.get('id'), token=token,
                                   start_time=time.mktime(start_time.timetuple()),
                                   refresh_time=time.mktime(refresh_time.timetuple()))
     return token.decode()
 
 
-def record_ip(host, api_path):
-    """
-    记录目标用户ip,
-    查询其访问该接口次数
-    """
-    print(request.headers.get('X_FORWARDED_FOR'))
-
-    # with manager_redis_operation() as manager:
-    #     ip, port = host.split(':')
-    #     manager.record_ip(ip, api_path, CACHE_NAME)
-
-
 def again_token(payload=None, id=None):
     """再次生成token"""
-    with manager_redis_operation() as manager:
+    with manager_base_package() as manager:
         refresh_time = manager.get_token_exp(id, CACHE_NAME)  # 获取token最终失效期
     now = time.mktime(datetime.datetime.now().timetuple())
     if refresh_time > now:
@@ -140,8 +134,9 @@ def parse_jwt(sender, **kwargs):
             # 在解析payload过程中突然过期,重新生成
             # token到期异常,判断refresh_jwt是否还在有效期
             # TODO: 突然过期,PyJwt抛出签证过期异常,拿不到payload,这里需要处理以下
-            token = again_token(payload, id)
-            req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
+            # token = again_token(payload, id)
+            # req['token'] = token  # 暂时存放,等执行完视图函数,添加到Response中
+            raise ServerTokenExpire()
         except DecodeError:
             # token错误
             raise TokenDecodeError()
@@ -155,16 +150,14 @@ def append_jwt(sender, response):
     3.编码,写回response.__dict__
     """
     req = request
-    print(response.__dict__)
     try:
         # 刷新重新写回token到Response的情况
         if getattr(req, 'token', None):
-            print(req['token'])
-            response_str = response.__dict__.get[0].decode()
+            response_str = response.__dict__.get('response').decode()
             response_dict = json.loads(response_str)
             response_dict.update({'token': getattr(req, 'token')})
             response_str = json.dumps(response_dict)
-            response.__dict__.get[0] = response_str.encode()
+            response.__dict__.update({'response': response_str.encode()})
     except TypeError:
         # 处理特殊Response对象属性的情况
         pass
@@ -173,19 +166,32 @@ def append_jwt(sender, response):
         pass
 
 
+def record_ip(host, api_path):
+    """
+    记录目标用户ip,
+    查询其访问该接口次数
+    """
+    # with manager_rate_package() as manager:
+    #     manager.record_ip(ip, api_path, CACHE_NAME)
+
+
+def get_nginx_true_ip(req):
+    """获取nginx代理后的真实ip"""
+    return req.access_route[-1]
+
+
 def rate(sender, **kwargs):
     """针对API进行限流"""
     req = request
-    host = req.headers.get('host')
     path = req.path  # 相对路径
-    # url = req.url   # 绝对路径
-    record_ip(host, path)  # 记录用户IP + 绝对路径进行限流
+    record_ip(get_nginx_true_ip(req), path)  # 记录用户IP + 绝对路径进行限流
 
 
 class HandleSignal(object):
     """处理发送验证码信号"""
 
-    def register_signal(self, signal, callback):
+    @staticmethod
+    def register_signal(signal, callback):
         """注册信号"""
         signal.connect(callback)
 
@@ -196,5 +202,6 @@ class HandleSignal(object):
         self.register_signal(request_started, parse_jwt)  # 解析jwt,获取用户对象,立即登入
         self.register_signal(request_finished, append_jwt)  # 追加jwt
         self.register_signal(request_started, rate)  # 限流
+
 
 signal = HandleSignal()

@@ -5,11 +5,12 @@
 # @Software: Pycharm
 from extensions.celery_app import PyCelery
 from extensions.crypto import PBKDF2PasswordHasher
-from extensions.redis import BaseRedis
+from extensions.redis import BaseRedis, RateRedis
 from extensions.sms import sms
 
 
 redis_app = BaseRedis   # redis application
+rate_redis = RateRedis
 
 sms = sms               # sms service
 

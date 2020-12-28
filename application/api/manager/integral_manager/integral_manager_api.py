@@ -36,5 +36,11 @@ class IntegralManagerApi(Resource):
     def delete(self):
         """删除商品"""
 
+        parser = reqparse.RequestParser()
+        parser.add_argument('oid', type=str, help='商品oid格式不正确', required=True)
+        args = parser.parse_args()
+        outer_net = oss.upload_file()
+
+
     def put(self):
         """更新商品信息"""

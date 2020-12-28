@@ -9,7 +9,7 @@
 from bson import ObjectId
 
 from application.models.user_model import User
-from extensions.redis import manager_redis_operation
+from extensions.redis import manager_base_package
 from application.models.sport_model import StepSport
 
 CACHE_NAME = 'user'
@@ -38,7 +38,7 @@ def timer_rewrite_step_number(mold):
     定时从redis写回mongodb
     """
 
-    with manager_redis_operation() as manager:
+    with manager_base_package() as manager:
         result_dict = manager.rewrite_data_to_mongo(mold=mold, redis_name=CACHE_NAME)
         for member, value in result_dict.items():
             if not isinstance(member, str) or not isinstance(value, int):

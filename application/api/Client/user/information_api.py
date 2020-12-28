@@ -15,9 +15,11 @@ from werkzeug.datastructures import FileStorage
 from application.api.Client.user import authenticate_jwt
 from application.utils.api_permission import api_permission_check
 from application.utils.exception import ModifyInformationError
-from application.utils.fields import username_string
+from application.utils.fields import username_string, phone_string, identify_code_string, ip_string, password_string
 from application.utils.success_code import response_code
 from extensions.oss import oss
+from extensions.redis import manager_base_package
+from application.utils.exception import CodeError
 
 
 class InformationApi(Resource):
@@ -75,6 +77,89 @@ class InformationApi(Resource):
         outer_net = oss.upload_file(args.get('head_image'), self.folder)
         user.save_head_image_url(file_url=outer_net)
         return response_code.modify_head_image_success
+
+
+class FindPasswordApi(Resource):
+    """
+    找回密码
+
+    找回密码(1)：
+        1.输入手机号
+        2.获取手机号验证码
+        3.验证手机号和验证码是否吻合,如果吻合,需要生成修改唯一密码凭证,确保当前手机号/邮箱与之前的手机号/邮箱一致(可以前端传客户端mac)
+
+        (验证通过，无回复内容进入重置密码界面）
+    """
+
+    CACHE_NAME = 'code'
+
+    def validate(self):
+        """
+        校验数据
+        :return:dict
+        """
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('phone', type=phone_string, help='手机号格式不正确', required=True)
+        parser.add_argument('code', type=identify_code_string, help='验证码格式不正确', required=True)
+        parser.add_argument('X-FORWARD-FOR', type=ip_string, location='headers', dest='ip')
+        return parser.parse_args()
+
+    def save_ident(self, phone, ip):
+        """
+        记录唯一凭证,用于确保在修改密码和验证码校验分为两个界面情况下,由同一个用户完成
+        :param phone: 手机号
+        """
+        with manager_base_package() as manager:
+            manager.save_ident(phone, ip, self.CACHE_NAME)
+
+    def post(self):
+        args = self.validate()
+        phone = args.get('phone')
+        with manager_base_package() as manager:
+            is_correct = manager.check_code(phone, args.get('code'))
+            if not is_correct:
+                raise CodeError()
+            # 记录唯一凭证
+            self.save_ident(phone, args.get('ip'))
+            return {'status':'go on!'}, 204 # 进入修改密码页
+
+
+
+class ModifyPasswordApi(Resource):
+    """
+    修改密码
+
+    二  针对找回密码后修改密码流程:
+
+    1.比较唯一凭证是否是之前的手机号用户(由redis记录)
+    2.修改密码
+    3.返回修改结果,删除唯一凭证
+
+    一 针对直接修改密码:
+
+    需要数据:
+    1) 旧密码
+    2) 新密码
+    3) 手机验证码
+
+    校验,修改密码,返回响应
+    """
+
+    def validate_retrieve_modify_password(self):
+        """
+        validate fields regrading with the way of retrieve password
+        """
+
+        parser = reqparse.RequestParser(bundle_errors=True)
+        parser.add_argument('new_password', type=password_string, help='密码格式不正确', required=True)
+        parser.add_argument('phone', type=phone_string, help='手机号格式不正确', required=True)
+        return parser.parse_args()
+
+
+    def post(self):
+        args = self.validate_retrieve_modify_password()
+        
+
 
 
 
