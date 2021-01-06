@@ -189,6 +189,10 @@ class DevelopmentConfig(DefaultConfig):
         'whole-api':'100/day'
     }
 
+    COMMODITY_FOLDER = 'IntegralCommdity'
+
+    HEAD_IMAGES_FOLDER = 'HeadImages'
+
 
 
 development_config = DevelopmentConfig()

@@ -87,6 +87,14 @@ def ip_string(value):
     return value
 
 
+def sport_category_list(value):
+    """喜爱的运动类型列表"""
+    print(value)
+    if not isinstance(value, list) or not all([re.match('^[0-9]{1}$', item) for item in value]):
+        raise ValueError('运动类型数据缺失或格式错误')
+    return list(set(value))
+
+
 class PhoneString(fields.Raw):
     """构建手机号字段"""
 

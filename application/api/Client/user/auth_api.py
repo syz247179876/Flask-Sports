@@ -5,7 +5,7 @@
 # @Software: Pycharm
 
 
-from flask import current_app
+from flask import current_app, url_for
 from flask_restful import Resource, reqparse
 from mongoengine import NotUniqueError
 from pymongo.errors import DuplicateKeyError
@@ -63,6 +63,7 @@ class RegisterApi(Resource):
             raise VerificationCodeException()
         # 创建用户
         self.create_user(**args)
+        response_code.register_success.update({'next', url_for('hobby')})
         return response_code.register_success
 
 

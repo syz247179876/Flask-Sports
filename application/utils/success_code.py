@@ -96,6 +96,9 @@ MODIFY_HEAD_IMAGE_SUCCESS = 2026
 # 增加商品
 ADD_COMMODITY_SUCCESS = 2027
 
+# 记录用户兴趣爱好成功
+RECORD_HOBBY_SUCCESS = 2028
+
 # 认证真实用户成功
 VERIFY_ID_CARD_SUCCESS = 15
 
@@ -376,7 +379,7 @@ class ResponseCode:
     @property
     def bind_qq(self):
         """qq帐号已被绑定"""
-        self.result.update(dict(msg='QQ帐号已被绑定',status='error'))
+        self.result.update(dict(msg='QQ帐号已被绑定', status='error'))
         return self.result
 
     @property
@@ -420,7 +423,6 @@ class ResponseCode:
         """原密码不正确"""
         self.result.update(dict(code=USER_ORIGINAL_PASSWORD_ERROR, msg='原密码不正确', status='error'))
         return self.result
-
 
     @property
     def bind_success(self):
@@ -681,5 +683,11 @@ class ResponseCode:
     def add_commodity_success(self):
         self.result.update(dict(code=ADD_COMMODITY_SUCCESS, msg='增加商品成功', status='success'))
         return self.result
+
+    @property
+    def record_hobby_success(self):
+        self.result.update(dict(code=RECORD_HOBBY_SUCCESS, msg='记录爱好成功', status='success'))
+        return self.result
+
 
 response_code = ResponseCode()
