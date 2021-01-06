@@ -5,10 +5,9 @@
 # @Software: Pycharm
 from flask import Blueprint
 from flask_restful import Api
-from flask_restful_swagger import swagger
 
 from application.api.Client.user.auth_api import LoginApi, RegisterApi
-from application.api.Client.user.information_api import InformationApi, FindPasswordApi
+from application.api.Client.user.information_api import InformationApi, FindPasswordApi, HobbyCollectApi
 from application.api.Client.user.send_code_api import SendCodeApi
 from application.utils.json import output_json
 
@@ -26,6 +25,6 @@ user_apis.add_resource(RegisterApi, '/register-api', endpoint='register')
 user_apis.add_resource(SendCodeApi, '/code-api', endpoint='code')
 user_apis.add_resource(InformationApi, '/information-api', endpoint='information')
 user_apis.add_resource(FindPasswordApi, '/password-first-api', endpoint='password')
-# user_apis.add_resource()
+user_apis.add_resource(HobbyCollectApi, '/hobby-api', endpoint='hobby')
 
 user_apis.representation(mediatype='application/json')(output_json)  # 自定义返回格式

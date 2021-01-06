@@ -9,13 +9,14 @@
 修改个人信息API
 """
 from bson import ObjectId
-from flask import current_app, g
+from flask import current_app, g, url_for
 from flask_restful import Resource, fields, marshal_with, reqparse
 from werkzeug.datastructures import FileStorage
 from application.api.Client.user import authenticate_jwt
 from application.utils.api_permission import api_permission_check
 from application.utils.exception import ModifyInformationError
-from application.utils.fields import username_string, phone_string, identify_code_string, ip_string, password_string
+from application.utils.fields import username_string, phone_string, identify_code_string, ip_string, password_string, \
+    sport_category_list
 from application.utils.success_code import response_code
 from extensions.oss import oss
 from extensions.redis import manager_base_package
@@ -70,7 +71,7 @@ class InformationApi(Resource):
 
     def put(self):
         """修改头像"""
-        user = getattr(g, 'user' ,None)
+        user = getattr(g, 'user', None)
         parser = reqparse.RequestParser(bundle_errors=True)
         parser.add_argument('head_image', type=FileStorage, help='文件格式不正确', location='files', required=True)
         args = parser.parse_args()
@@ -121,8 +122,7 @@ class FindPasswordApi(Resource):
                 raise CodeError()
             # 记录唯一凭证
             self.save_ident(phone, args.get('ip'))
-            return {'status':'go on!'}, 204 # 进入修改密码页
-
+            return {'status': 'go on!'}, 204  # 进入修改密码页
 
 
 class ModifyPasswordApi(Resource):
@@ -155,12 +155,26 @@ class ModifyPasswordApi(Resource):
         parser.add_argument('phone', type=phone_string, help='手机号格式不正确', required=True)
         return parser.parse_args()
 
-
     def post(self):
         args = self.validate_retrieve_modify_password()
-        
 
 
+class HobbyCollectApi(Resource):
+    """存储用户爱好"""
 
+    method_decorators = [api_permission_check, authenticate_jwt]
 
+    def validate(self):
+        parser = reqparse.RequestParser(bundle_errors=True)
+        # 当type为list时,仅从json中获取
+        parser.add_argument('sport_category', type=sport_category_list, help='运动类型数据缺失或格式错误', required=True,
+                            location='json')
+        return parser.parse_args()
 
+    def post(self):
+        """更新用户爱好"""
+        args = self.validate()
+        user = getattr(g, 'user')
+        user.update_one(set__appetition=args.get('sport_category'))  # 更新制定爱好字段
+        response_code.record_hobby_success.update({'next': url_for('auth.hobby')})
+        return response_code.record_hobby_success
